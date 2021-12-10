@@ -1,7 +1,7 @@
-  {
-    "config_name": "Sample config",
-    "hold_dt": 49.8,
-    "run_dt": 99.6,
-    "acc": 0.0,
-    "dec": 99.6
-  }
+{
+  "config_name": "Sample config",
+  "hold_dt": 49.8,
+  "run_dt": 99.6,
+  "acc": 57.91,
+  "dec": 99.6
+}

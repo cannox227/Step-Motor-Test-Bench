@@ -1,5 +1,4 @@
 import dearpygui.dearpygui as dpg
-import dearpygui.demo as demo
 import plot as plot
 import config
 
@@ -24,6 +23,8 @@ def save_callback(sender, app_data, user_data):
     print(f"Run DT is: {run}")
     print(f"Acceleration is: {acc}")
     print(f"Deceleration is: {dec}")
+
+    config.write_config()
 
 def main():
 
