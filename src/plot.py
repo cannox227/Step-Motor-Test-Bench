@@ -9,6 +9,8 @@ def get_xvals():
 def get_yvals():
     return yvals
 
+def print_vals():
+    print(f"xvals: {xvals} \nyvals: {yvals}")
 def plot_V():
     global xvals, yvals
     xvals.clear()
