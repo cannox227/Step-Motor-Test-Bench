@@ -2,8 +2,58 @@ import dearpygui.dearpygui as dpg
 import plot as plot
 import config
 
-dpg.create_context()
+# Get value of a numeric slider
+def get_slider_value(sender):
+    return str(round(dpg.get_value(sender),2))
+
+# Get radio value
+def get_radio_value(sender):
+    return str(dpg.get_value(sender))
+
+# Callback wich updates and stores the config file
+def save_callback(sender, app_data, user_data):
+
+    hold = float(get_slider_value('hold'))
+    run = float(get_slider_value('run'))
+    acc = float(get_slider_value('acc'))
+    dec = float(get_slider_value('dec'))
+    step = get_radio_value('step')
+    rotation = get_radio_value('rotation')
+
+    config.set_value('hold_dt', hold)
+    config.set_value('run_dt', run)
+    config.set_value('acc', acc)
+    config.set_value('dec', dec)
+    config.set_value('step', step)
+    config.set_value('rotation', rotation)
+
+    # print(f"Hold DT is: {hold}")
+    # print(f"Run DT is: {run}")
+    # print(f"Acceleration is: {acc}")
+    # print(f"Deceleration is: {dec}")
+
+    config.write_config(f"configs/{config.get_value('config_name')}.json")
+
+def exit_callback():
+    exit(0)
+
+def manage_file(sender, app_data):
+    config.read_config(app_data['file_path_name'])
+    dpg.set_value("hold", config.get_value('hold_dt'))
+    dpg.set_value("run", config.get_value('run_dt'))
+    dpg.set_value("acc", config.get_value('acc'))
+    dpg.set_value("dec", config.get_value('dec'))
+
+def create_file(sender, app_data):
+    config.init_config(app_data['file_name'].replace('.json',''))
+    #print(app_data['file_name'])
+    config.write_config(app_data['file_path_name'])
+    dpg.set_value("hold", config.get_value('hold_dt'))
+    dpg.set_value("run", config.get_value('run_dt'))
+    dpg.set_value("acc", config.get_value('acc'))
+    dpg.set_value("dec", config.get_value('dec'))
 # Graphs
+dpg.create_context()
 with dpg.window(label="Motor Voltage plot",tag="Motor Voltage plot", pos=(300, 0), show=False):
         with dpg.plot(label="Voltage - w", height=300, width=300):
             dpg.add_plot_legend()
@@ -32,53 +82,24 @@ with dpg.window(label="Motor Current plot",tag="Motor Current plot", pos=(300, 1
             dpg.add_plot_axis(dpg.mvXAxis, label="I", tag="y-axis-I")
             dpg.add_line_series(plot.get_xvals(), plot.get_yvals(), tag="I vals", label="I-w", parent="y-axis-I")
 
-# Get value of a numeric slider
-def get_slider_value(sender):
-    return str(round(dpg.get_value(sender),2))
+# File manager read
+with dpg.file_dialog(directory_selector=False, show=False, callback=manage_file, tag="file_dialog_r", height=50):
+    dpg.add_file_extension(".json")
 
-# Get radio value
-def get_radio_value(sender):
-    return str(dpg.get_value(sender))
-
-# Callback wich updates and stores the config file
-def save_callback(sender, app_data, user_data):
-
-    hold = float(get_slider_value('hold'))
-    run = float(get_slider_value('run'))
-    acc = float(get_slider_value('acc'))
-    dec = float(get_slider_value('dec'))
-    step = get_radio_value('step')
-    rotation = get_radio_value('rotation')
-
-    config.set_value('hold_dt', hold)
-    config.set_value('run_dt', run)
-    config.set_value('acc', acc)
-    config.set_value('dec', dec)
-    config.set_value('step', step)
-    config.set_value('rotation', rotation)
-
-    print(f"Hold DT is: {hold}")
-    print(f"Run DT is: {run}")
-    print(f"Acceleration is: {acc}")
-    print(f"Deceleration is: {dec}")
-
-    config.write_config()
-
-def exit_callback():
-    exit(0)
-
+# File manager write
+with dpg.file_dialog(directory_selector=False, show=False, callback=create_file, tag="file_dialog_c", height=50):
+    dpg.add_file_extension(".json")
 def main():
 
     #import JSON config file
-    config.read_config()
+    config.read_config("configs/motor_params.json")
     
     with dpg.window(label="Motor settings",tag="Motor settings"):
 
         with dpg.menu_bar():
             with dpg.menu(label="File"):
-                dpg.add_menu_item(label="Open")
-                dpg.add_menu_item(label="Import")
-                dpg.add_menu_item(label="Export")
+                dpg.add_menu_item(label="New config file", callback=lambda: dpg.show_item("file_dialog_c"))
+                dpg.add_menu_item(label="Open config file", callback=lambda: dpg.show_item("file_dialog_r"))
 
             with dpg.menu(label="Edit"):
                 dpg.add_menu_item(label="Copy")
@@ -115,7 +136,7 @@ def main():
             dpg.add_separator()
             
             with dpg.group(horizontal=True) as bottom_buttons:
-                dpg.add_button(label="Save", callback=save_callback)
+                dpg.add_button(label="Save with override", callback=save_callback)
                 dpg.add_button(label="Exit", callback=exit_callback)
 
     
@@ -139,14 +160,6 @@ def plot_P():
     plot.plot_P()
     dpg.set_value("P vals", [plot.get_xvals(), plot.get_yvals()])
     dpg.show_item("Motor Power plot")
-    #dpg.get_item_configuration("power_plot")
-    #dpg.configure_item("power_plot", show=True)
-    ## graphs
-    #TODO
-    #modal=TRUE
-    #implementare window come global
-    
-
 
 def plot_I():
     plot.plot_I()
