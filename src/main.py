@@ -43,6 +43,9 @@ def manage_file(sender, app_data):
     dpg.set_value("run", config.get_value('run_dt'))
     dpg.set_value("acc", config.get_value('acc'))
     dpg.set_value("dec", config.get_value('dec'))
+    dpg.set_value("step", config.get_value('step'))
+    dpg.set_value("rotation", config.get_value('rotation'))
+    
 
 def create_file(sender, app_data):
     config.init_config(app_data['file_name'].replace('.json',''))
@@ -52,6 +55,7 @@ def create_file(sender, app_data):
     dpg.set_value("run", config.get_value('run_dt'))
     dpg.set_value("acc", config.get_value('acc'))
     dpg.set_value("dec", config.get_value('dec'))
+    
 # Graphs
 dpg.create_context()
 with dpg.window(label="Motor Voltage plot",tag="Motor Voltage plot", pos=(300, 0), show=False):
@@ -174,4 +178,7 @@ def plot_T():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except:
+        print("\nSome errors occured")
