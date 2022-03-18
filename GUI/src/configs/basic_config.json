@@ -1,0 +1,9 @@
+{
+  "config_name": "Basic config",
+  "hold_dt": 69,
+  "run_dt": 42.0,
+  "acc": 66.6,
+  "dec": 0.0,
+  "step": "Full Step",
+  "rotation": "Anti-Clockwise"
+}
