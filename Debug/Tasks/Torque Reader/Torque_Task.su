@@ -1,0 +1,3 @@
+Torque_Task.c:20:6:task_Torque	24	static
+Torque_Task.c:47:6:getSamples	16	static
+Torque_Task.c:60:6:getRealTorque	8	static

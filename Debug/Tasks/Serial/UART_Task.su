@@ -1,0 +1,6 @@
+UART_Task.c:40:6:task_UART	16	static
+UART_Task.c:77:6:task_UART_Init	16	static
+UART_Task.c:86:6:HAL_UART_RxCpltCallback	24	static
+UART_Task.c:108:6:HAL_UART_ErrorCallback	16	static
+UART_Task.c:122:6:build_cmd	8	static
+UART_Task.c:129:7:parse_cmd	16	static

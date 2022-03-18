@@ -1,0 +1,5 @@
+Serial_Task.c:35:6:task_Serial	16	static
+Serial_Task.c:71:6:task_Serial_Init	16	static
+Serial_Task.c:88:6:HAL_UART_TxCpltCallback	16	static
+Serial_Task.c:145:14:Parse_Menu	24	static
+Serial_Task.c:193:6:println	24	static
