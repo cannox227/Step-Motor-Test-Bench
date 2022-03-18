@@ -1,9 +1,0 @@
-{
-  "config_name": "Sample config",
-  "hold_dt": 10.0,
-  "run_dt": 54.43,
-  "acc": 10.0,
-  "dec": 20.0,
-  "step": "Half Step",
-  "rotation": "Clockwise"
-}

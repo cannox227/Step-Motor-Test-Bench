@@ -1,9 +1,0 @@
-{
-  "config_name": "test_wr",
-  "hold_dt": 68.33,
-  "run_dt": 20.85,
-  "acc": 20.85,
-  "dec": 74.12,
-  "step": "Full Step",
-  "rotation": "Anti-Clockwise"
-}
