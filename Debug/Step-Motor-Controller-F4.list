@@ -37,13 +37,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  00020338  00000000  00000000  000702e8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00027d26  00000000  00000000  00090620  2**0
+ 17 .debug_line   000289da  00000000  00000000  00090620  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000ab23f  00000000  00000000  000b8346  2**0
+ 18 .debug_str    000ab24f  00000000  00000000  000b8ffa  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  00163585  2**0
+ 19 .comment      00000053  00000000  00000000  00164249  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00007a1c  00000000  00000000  001635d8  2**2
+ 20 .debug_frame  00007a1c  00000000  00000000  0016429c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -542,7 +542,7 @@ tx_thread_fpu_disable:
     STR     r3, [r2, #52]                           // Store initial r12
  800034c:	6353      	str	r3, [r2, #52]	; 0x34
     MOV     r3, #0xFFFFFFFF                         // Poison EXC_RETURN value
- 800034e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800034e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
     STR     r3, [r2, #56]                           // Store initial lr
  8000352:	6393      	str	r3, [r2, #56]	; 0x38
     STR     r1, [r2, #60]                           // Store initial pc
@@ -1518,7 +1518,7 @@ __tx_timer_nothing_expired:
  8000c7a:	e712      	b.n	8000aa2 <__aeabi_dmul+0x24a>
 
 08000c7c <__gedf2>:
- 8000c7c:	f04f 3cff 	mov.w	ip, #4294967295
+ 8000c7c:	f04f 3cff 	mov.w	ip, #4294967295	; 0xffffffff
  8000c80:	e006      	b.n	8000c90 <__cmpdf2+0x4>
  8000c82:	bf00      	nop
 
@@ -1684,8 +1684,8 @@ __tx_timer_nothing_expired:
  8000e0e:	bf08      	it	eq
  8000e10:	2800      	cmpeq	r0, #0
  8000e12:	bf1c      	itt	ne
- 8000e14:	f04f 31ff 	movne.w	r1, #4294967295
- 8000e18:	f04f 30ff 	movne.w	r0, #4294967295
+ 8000e14:	f04f 31ff 	movne.w	r1, #4294967295	; 0xffffffff
+ 8000e18:	f04f 30ff 	movne.w	r0, #4294967295	; 0xffffffff
  8000e1c:	f000 b96e 	b.w	80010fc <__aeabi_idiv0>
  8000e20:	f1ad 0c08 	sub.w	ip, sp, #8
  8000e24:	e96d ce04 	strd	ip, lr, [sp, #-16]!
@@ -1723,7 +1723,7 @@ __tx_timer_nothing_expired:
  8000e80:	4299      	cmp	r1, r3
  8000e82:	d909      	bls.n	8000e98 <__udivmoddi4+0x60>
  8000e84:	18fb      	adds	r3, r7, r3
- 8000e86:	f106 30ff 	add.w	r0, r6, #4294967295
+ 8000e86:	f106 30ff 	add.w	r0, r6, #4294967295	; 0xffffffff
  8000e8a:	f080 8119 	bcs.w	80010c0 <__udivmoddi4+0x288>
  8000e8e:	4299      	cmp	r1, r3
  8000e90:	f240 8116 	bls.w	80010c0 <__udivmoddi4+0x288>
@@ -1738,7 +1738,7 @@ __tx_timer_nothing_expired:
  8000eac:	45a6      	cmp	lr, r4
  8000eae:	d909      	bls.n	8000ec4 <__udivmoddi4+0x8c>
  8000eb0:	193c      	adds	r4, r7, r4
- 8000eb2:	f100 33ff 	add.w	r3, r0, #4294967295
+ 8000eb2:	f100 33ff 	add.w	r3, r0, #4294967295	; 0xffffffff
  8000eb6:	f080 8105 	bcs.w	80010c4 <__udivmoddi4+0x28c>
  8000eba:	45a6      	cmp	lr, r4
  8000ebc:	f240 8102 	bls.w	80010c4 <__udivmoddi4+0x28c>
@@ -1770,7 +1770,7 @@ __tx_timer_nothing_expired:
  8000f08:	428b      	cmp	r3, r1
  8000f0a:	d907      	bls.n	8000f1c <__udivmoddi4+0xe4>
  8000f0c:	1879      	adds	r1, r7, r1
- 8000f0e:	f10c 30ff 	add.w	r0, ip, #4294967295
+ 8000f0e:	f10c 30ff 	add.w	r0, ip, #4294967295	; 0xffffffff
  8000f12:	d202      	bcs.n	8000f1a <__udivmoddi4+0xe2>
  8000f14:	428b      	cmp	r3, r1
  8000f16:	f200 80e9 	bhi.w	80010ec <__udivmoddi4+0x2b4>
@@ -1784,7 +1784,7 @@ __tx_timer_nothing_expired:
  8000f30:	45a0      	cmp	r8, r4
  8000f32:	d907      	bls.n	8000f44 <__udivmoddi4+0x10c>
  8000f34:	193c      	adds	r4, r7, r4
- 8000f36:	f100 33ff 	add.w	r3, r0, #4294967295
+ 8000f36:	f100 33ff 	add.w	r3, r0, #4294967295	; 0xffffffff
  8000f3a:	d202      	bcs.n	8000f42 <__udivmoddi4+0x10a>
  8000f3c:	45a0      	cmp	r8, r4
  8000f3e:	f200 80d9 	bhi.w	80010f4 <__udivmoddi4+0x2bc>
@@ -1833,7 +1833,7 @@ __tx_timer_nothing_expired:
  8000fba:	fa04 f402 	lsl.w	r4, r4, r2
  8000fbe:	d909      	bls.n	8000fd4 <__udivmoddi4+0x19c>
  8000fc0:	18fb      	adds	r3, r7, r3
- 8000fc2:	f106 3cff 	add.w	ip, r6, #4294967295
+ 8000fc2:	f106 3cff 	add.w	ip, r6, #4294967295	; 0xffffffff
  8000fc6:	f080 808d 	bcs.w	80010e4 <__udivmoddi4+0x2ac>
  8000fca:	4299      	cmp	r1, r3
  8000fcc:	f240 808a 	bls.w	80010e4 <__udivmoddi4+0x2ac>
@@ -1848,7 +1848,7 @@ __tx_timer_nothing_expired:
  8000fe8:	428b      	cmp	r3, r1
  8000fea:	d907      	bls.n	8000ffc <__udivmoddi4+0x1c4>
  8000fec:	1879      	adds	r1, r7, r1
- 8000fee:	f100 3cff 	add.w	ip, r0, #4294967295
+ 8000fee:	f100 3cff 	add.w	ip, r0, #4294967295	; 0xffffffff
  8000ff2:	d273      	bcs.n	80010dc <__udivmoddi4+0x2a4>
  8000ff4:	428b      	cmp	r3, r1
  8000ff6:	d971      	bls.n	80010dc <__udivmoddi4+0x2a4>
@@ -1877,7 +1877,7 @@ __tx_timer_nothing_expired:
  8001040:	fa00 f306 	lsl.w	r3, r0, r6
  8001044:	d908      	bls.n	8001058 <__udivmoddi4+0x220>
  8001046:	1861      	adds	r1, r4, r1
- 8001048:	f109 30ff 	add.w	r0, r9, #4294967295
+ 8001048:	f109 30ff 	add.w	r0, r9, #4294967295	; 0xffffffff
  800104c:	d248      	bcs.n	80010e0 <__udivmoddi4+0x2a8>
  800104e:	458a      	cmp	sl, r1
  8001050:	d946      	bls.n	80010e0 <__udivmoddi4+0x2a8>
@@ -1892,7 +1892,7 @@ __tx_timer_nothing_expired:
  800106e:	45b8      	cmp	r8, r7
  8001070:	d907      	bls.n	8001082 <__udivmoddi4+0x24a>
  8001072:	19e7      	adds	r7, r4, r7
- 8001074:	f100 31ff 	add.w	r1, r0, #4294967295
+ 8001074:	f100 31ff 	add.w	r1, r0, #4294967295	; 0xffffffff
  8001078:	d22e      	bcs.n	80010d8 <__udivmoddi4+0x2a0>
  800107a:	45b8      	cmp	r8, r7
  800107c:	d92c      	bls.n	80010d8 <__udivmoddi4+0x2a0>
@@ -3389,7 +3389,7 @@ int _kill(int pid, int sig)
  8001880:	2216      	movs	r2, #22
  8001882:	601a      	str	r2, [r3, #0]
 	return -1;
- 8001884:	f04f 33ff 	mov.w	r3, #4294967295
+ 8001884:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 }
  8001888:	4618      	mov	r0, r3
  800188a:	3708      	adds	r7, #8
@@ -3405,7 +3405,7 @@ void _exit (int status)
  8001894:	af00      	add	r7, sp, #0
  8001896:	6078      	str	r0, [r7, #4]
 	_kill(status, -1);
- 8001898:	f04f 31ff 	mov.w	r1, #4294967295
+ 8001898:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  800189c:	6878      	ldr	r0, [r7, #4]
  800189e:	f7ff ffe7 	bl	8001870 <_kill>
 	while (1) {}		/* Make sure we hang here */
@@ -3505,7 +3505,7 @@ int _close(int file)
  800191a:	af00      	add	r7, sp, #0
  800191c:	6078      	str	r0, [r7, #4]
 	return -1;
- 800191e:	f04f 33ff 	mov.w	r3, #4294967295
+ 800191e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
 }
  8001922:	4618      	mov	r0, r3
  8001924:	370c      	adds	r7, #12
@@ -3626,7 +3626,7 @@ void *_sbrk(ptrdiff_t incr)
  80019b6:	220c      	movs	r2, #12
  80019b8:	601a      	str	r2, [r3, #0]
     return (void *)-1;
- 80019ba:	f04f 33ff 	mov.w	r3, #4294967295
+ 80019ba:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80019be:	e009      	b.n	80019d4 <_sbrk+0x54>
   }
 
@@ -11448,7 +11448,7 @@ __weak void HAL_Delay(uint32_t Delay)
   /* Add a freq to guarantee minimum wait */
   if (wait < HAL_MAX_DELAY)
  8004b4e:	68fb      	ldr	r3, [r7, #12]
- 8004b50:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8004b50:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8004b54:	d005      	beq.n	8004b62 <HAL_Delay+0x26>
   {
     wait += (uint32_t)(uwTickFreq);
@@ -12550,7 +12550,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
 
   return (
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 80051b8:	f04f 32ff 	mov.w	r2, #4294967295
+ 80051b8:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  80051bc:	69bb      	ldr	r3, [r7, #24]
  80051be:	fa02 f303 	lsl.w	r3, r2, r3
  80051c2:	43da      	mvns	r2, r3
@@ -12559,7 +12559,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
  80051c8:	697b      	ldr	r3, [r7, #20]
  80051ca:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 80051cc:	f04f 31ff 	mov.w	r1, #4294967295
+ 80051cc:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  80051d0:	697b      	ldr	r3, [r7, #20]
  80051d2:	fa01 f303 	lsl.w	r3, r1, r3
  80051d6:	43d9      	mvns	r1, r3
@@ -15917,7 +15917,7 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxD
  8006532:	429a      	cmp	r2, r3
  8006534:	d807      	bhi.n	8006546 <HAL_SPI_TransmitReceive+0x1d8>
  8006536:	6bbb      	ldr	r3, [r7, #56]	; 0x38
- 8006538:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8006538:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  800653c:	d003      	beq.n	8006546 <HAL_SPI_TransmitReceive+0x1d8>
       {
         errorcode = HAL_TIMEOUT;
@@ -16074,7 +16074,7 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxD
  8006628:	429a      	cmp	r2, r3
  800662a:	d803      	bhi.n	8006634 <HAL_SPI_TransmitReceive+0x2c6>
  800662c:	6bbb      	ldr	r3, [r7, #56]	; 0x38
- 800662e:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 800662e:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8006632:	d102      	bne.n	800663a <HAL_SPI_TransmitReceive+0x2cc>
  8006634:	6bbb      	ldr	r3, [r7, #56]	; 0x38
  8006636:	2b00      	cmp	r3, #0
@@ -16209,7 +16209,7 @@ static HAL_StatusTypeDef SPI_WaitFlagStateUntilTimeout(SPI_HandleTypeDef *hspi, 
   {
     if (Timeout != HAL_MAX_DELAY)
  80066ec:	683b      	ldr	r3, [r7, #0]
- 80066ee:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 80066ee:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  80066f2:	d050      	beq.n	8006796 <SPI_WaitFlagStateUntilTimeout+0xe2>
     {
       if (((HAL_GetTick() - tmp_tickstart) >= tmp_timeout) || (tmp_timeout == 0U))
@@ -21011,7 +21011,7 @@ static HAL_StatusTypeDef UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, 
     /* Check for the Timeout */
     if (Timeout != HAL_MAX_DELAY)
  800821e:	6cbb      	ldr	r3, [r7, #72]	; 0x48
- 8008220:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8008220:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8008224:	d04c      	beq.n	80082c0 <UART_WaitOnFlagUntilTimeout+0xb4>
     {
       if ((Timeout == 0U) || ((HAL_GetTick() - Tickstart) > Timeout))
@@ -26021,7 +26021,7 @@ ULONG                       time_stamp =  ((ULONG) 0);
             /* Make sure the suspension is not a wait-forever.  */
             if (timeout != TX_WAIT_FOREVER)
  8009ade:	6efb      	ldr	r3, [r7, #108]	; 0x6c
- 8009ae0:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8009ae0:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8009ae4:	d004      	beq.n	8009af0 <_tx_thread_system_suspend+0x44>
             {
             
@@ -26956,7 +26956,7 @@ ULONG                       expiration_time;
         /* Determine if the timer is set to wait forever.  */
         if (remaining_ticks != TX_WAIT_FOREVER)
  8009f48:	697b      	ldr	r3, [r7, #20]
- 8009f4a:	f1b3 3fff 	cmp.w	r3, #4294967295
+ 8009f4a:	f1b3 3fff 	cmp.w	r3, #4294967295	; 0xffffffff
  8009f4e:	d046      	beq.n	8009fde <_tx_timer_system_activate+0xaa>
         {
     
@@ -29126,7 +29126,7 @@ void task_Powerstep01(uint32_t interval)
 			tx_queue_receive(ptr_motor_queue,&msg,TX_WAIT_FOREVER);
  800a82a:	4b2c      	ldr	r3, [pc, #176]	; (800a8dc <task_Powerstep01+0xcc>)
  800a82c:	681b      	ldr	r3, [r3, #0]
- 800a82e:	f04f 32ff 	mov.w	r2, #4294967295
+ 800a82e:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800a832:	492b      	ldr	r1, [pc, #172]	; (800a8e0 <task_Powerstep01+0xd0>)
  800a834:	4618      	mov	r0, r3
  800a836:	f7ff fe65 	bl	800a504 <_txe_queue_receive>
@@ -29549,7 +29549,7 @@ void task_UART(uint32_t interval){
 		tx_queue_receive(ptr_uart_cmd_queue,&uart_msg,TX_WAIT_FOREVER);
  800aac8:	4b1c      	ldr	r3, [pc, #112]	; (800ab3c <task_UART+0x9c>)
  800aaca:	681b      	ldr	r3, [r3, #0]
- 800aacc:	f04f 32ff 	mov.w	r2, #4294967295
+ 800aacc:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800aad0:	491b      	ldr	r1, [pc, #108]	; (800ab40 <task_UART+0xa0>)
  800aad2:	4618      	mov	r0, r3
  800aad4:	f7ff fd16 	bl	800a504 <_txe_queue_receive>
@@ -30158,7 +30158,7 @@ ULONG parse_cmd(){
  800af76:	fb07 1516 	mls	r5, r7, r6, r1
  800af7a:	3530      	adds	r5, #48	; 0x30
  800af7c:	2a63      	cmp	r2, #99	; 0x63
- 800af7e:	f104 34ff 	add.w	r4, r4, #4294967295
+ 800af7e:	f104 34ff 	add.w	r4, r4, #4294967295	; 0xffffffff
  800af82:	f80e 5c01 	strb.w	r5, [lr, #-1]
  800af86:	4631      	mov	r1, r6
  800af88:	dcf1      	bgt.n	800af6e <__exponent+0x22>
@@ -30220,12 +30220,12 @@ ULONG parse_cmd(){
  800b020:	ee08 0a10 	vmov	s16, r0
  800b024:	4b9f      	ldr	r3, [pc, #636]	; (800b2a4 <_printf_float+0x2dc>)
  800b026:	e9dd 0106 	ldrd	r0, r1, [sp, #24]
- 800b02a:	f04f 32ff 	mov.w	r2, #4294967295
+ 800b02a:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800b02e:	f7f5 fead 	bl	8000d8c <__aeabi_dcmpun>
  800b032:	bb88      	cbnz	r0, 800b098 <_printf_float+0xd0>
  800b034:	e9dd 0106 	ldrd	r0, r1, [sp, #24]
  800b038:	4b9a      	ldr	r3, [pc, #616]	; (800b2a4 <_printf_float+0x2dc>)
- 800b03a:	f04f 32ff 	mov.w	r2, #4294967295
+ 800b03a:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800b03e:	f7f5 fe87 	bl	8000d50 <__aeabi_dcmple>
  800b042:	bb48      	cbnz	r0, 800b098 <_printf_float+0xd0>
  800b044:	2200      	movs	r2, #0
@@ -30256,7 +30256,7 @@ ULONG parse_cmd(){
  800b080:	f000 f9d8 	bl	800b434 <_printf_common>
  800b084:	3001      	adds	r0, #1
  800b086:	f040 8090 	bne.w	800b1aa <_printf_float+0x1e2>
- 800b08a:	f04f 30ff 	mov.w	r0, #4294967295
+ 800b08a:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800b08e:	b00d      	add	sp, #52	; 0x34
  800b090:	ecbd 8b02 	vpop	{d8}
  800b094:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
@@ -30718,7 +30718,7 @@ ULONG parse_cmd(){
  800b4d2:	47c0      	blx	r8
  800b4d4:	3001      	adds	r0, #1
  800b4d6:	d103      	bne.n	800b4e0 <_printf_common+0xac>
- 800b4d8:	f04f 30ff 	mov.w	r0, #4294967295
+ 800b4d8:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800b4dc:	e8bd 87f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, pc}
  800b4e0:	3501      	adds	r5, #1
  800b4e2:	e7c6      	b.n	800b472 <_printf_common+0x3e>
@@ -30866,7 +30866,7 @@ ULONG parse_cmd(){
  800b650:	bfde      	ittt	le
  800b652:	2330      	movle	r3, #48	; 0x30
  800b654:	f806 3c01 	strble.w	r3, [r6, #-1]
- 800b658:	f106 36ff 	addle.w	r6, r6, #4294967295
+ 800b658:	f106 36ff 	addle.w	r6, r6, #4294967295	; 0xffffffff
  800b65c:	1b92      	subs	r2, r2, r6
  800b65e:	6122      	str	r2, [r4, #16]
  800b660:	f8cd a000 	str.w	sl, [sp]
@@ -30877,7 +30877,7 @@ ULONG parse_cmd(){
  800b66c:	f7ff fee2 	bl	800b434 <_printf_common>
  800b670:	3001      	adds	r0, #1
  800b672:	d14c      	bne.n	800b70e <_printf_i+0x1fe>
- 800b674:	f04f 30ff 	mov.w	r0, #4294967295
+ 800b674:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800b678:	b004      	add	sp, #16
  800b67a:	e8bd 87f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, pc}
  800b67e:	4835      	ldr	r0, [pc, #212]	; (800b754 <_printf_i+0x244>)
@@ -31065,7 +31065,7 @@ ULONG parse_cmd(){
  800b81c:	2310      	movs	r3, #16
  800b81e:	f10e 0e02 	add.w	lr, lr, #2
  800b822:	f108 4c00 	add.w	ip, r8, #2147483648	; 0x80000000
- 800b826:	f10c 3cff 	add.w	ip, ip, #4294967295
+ 800b826:	f10c 3cff 	add.w	ip, ip, #4294967295	; 0xffffffff
  800b82a:	2600      	movs	r6, #0
  800b82c:	fbbc f9f3 	udiv	r9, ip, r3
  800b830:	4635      	mov	r5, r6
@@ -31104,7 +31104,7 @@ ULONG parse_cmd(){
  800b882:	d804      	bhi.n	800b88e <_strtol_l.isra.0+0xca>
  800b884:	3c57      	subs	r4, #87	; 0x57
  800b886:	e7db      	b.n	800b840 <_strtol_l.isra.0+0x7c>
- 800b888:	f04f 36ff 	mov.w	r6, #4294967295
+ 800b888:	f04f 36ff 	mov.w	r6, #4294967295	; 0xffffffff
  800b88c:	e7e4      	b.n	800b858 <_strtol_l.isra.0+0x94>
  800b88e:	2e00      	cmp	r6, #0
  800b890:	da05      	bge.n	800b89e <_strtol_l.isra.0+0xda>
@@ -31120,7 +31120,7 @@ ULONG parse_cmd(){
  800b8a6:	2a00      	cmp	r2, #0
  800b8a8:	d0f7      	beq.n	800b89a <_strtol_l.isra.0+0xd6>
  800b8aa:	b10e      	cbz	r6, 800b8b0 <_strtol_l.isra.0+0xec>
- 800b8ac:	f10e 31ff 	add.w	r1, lr, #4294967295
+ 800b8ac:	f10e 31ff 	add.w	r1, lr, #4294967295	; 0xffffffff
  800b8b0:	6011      	str	r1, [r2, #0]
  800b8b2:	e7f2      	b.n	800b89a <_strtol_l.isra.0+0xd6>
  800b8b4:	2430      	movs	r4, #48	; 0x30
@@ -31394,7 +31394,7 @@ ULONG parse_cmd(){
  800bb72:	463b      	mov	r3, r7
  800bb74:	f7f5 f8d8 	bl	8000d28 <__aeabi_dcmpeq>
  800bb78:	b908      	cbnz	r0, 800bb7e <_dtoa_r+0x186>
- 800bb7a:	f10a 3aff 	add.w	sl, sl, #4294967295
+ 800bb7a:	f10a 3aff 	add.w	sl, sl, #4294967295	; 0xffffffff
  800bb7e:	f1ba 0f16 	cmp.w	sl, #22
  800bb82:	d854      	bhi.n	800bc2e <_dtoa_r+0x236>
  800bb84:	4b61      	ldr	r3, [pc, #388]	; (800bd0c <_dtoa_r+0x314>)
@@ -31404,7 +31404,7 @@ ULONG parse_cmd(){
  800bb92:	f7f5 f8d3 	bl	8000d3c <__aeabi_dcmplt>
  800bb96:	2800      	cmp	r0, #0
  800bb98:	d04b      	beq.n	800bc32 <_dtoa_r+0x23a>
- 800bb9a:	f10a 3aff 	add.w	sl, sl, #4294967295
+ 800bb9a:	f10a 3aff 	add.w	sl, sl, #4294967295	; 0xffffffff
  800bb9e:	2300      	movs	r3, #0
  800bba0:	930e      	str	r3, [sp, #56]	; 0x38
  800bba2:	9b12      	ldr	r3, [sp, #72]	; 0x48
@@ -31515,7 +31515,7 @@ ULONG parse_cmd(){
  800bca8:	2300      	movs	r3, #0
  800bcaa:	9305      	str	r3, [sp, #20]
  800bcac:	9508      	str	r5, [sp, #32]
- 800bcae:	f04f 39ff 	mov.w	r9, #4294967295
+ 800bcae:	f04f 39ff 	mov.w	r9, #4294967295	; 0xffffffff
  800bcb2:	2200      	movs	r2, #0
  800bcb4:	f8cd 9004 	str.w	r9, [sp, #4]
  800bcb8:	2312      	movs	r3, #18
@@ -31625,7 +31625,7 @@ ULONG parse_cmd(){
  800bdf2:	d07d      	beq.n	800bef0 <_dtoa_r+0x4f8>
  800bdf4:	f1b9 0f00 	cmp.w	r9, #0
  800bdf8:	dd3c      	ble.n	800be74 <_dtoa_r+0x47c>
- 800bdfa:	f10a 33ff 	add.w	r3, sl, #4294967295
+ 800bdfa:	f10a 33ff 	add.w	r3, sl, #4294967295	; 0xffffffff
  800bdfe:	9307      	str	r3, [sp, #28]
  800be00:	2200      	movs	r2, #0
  800be02:	4b91      	ldr	r3, [pc, #580]	; (800c048 <_dtoa_r+0x650>)
@@ -32061,7 +32061,7 @@ ULONG parse_cmd(){
  800c25a:	4620      	mov	r0, r4
  800c25c:	f000 fb2e 	bl	800c8bc <__multadd>
  800c260:	9b08      	ldr	r3, [sp, #32]
- 800c262:	f10a 3aff 	add.w	sl, sl, #4294967295
+ 800c262:	f10a 3aff 	add.w	sl, sl, #4294967295	; 0xffffffff
  800c266:	4683      	mov	fp, r0
  800c268:	2b00      	cmp	r3, #0
  800c26a:	f000 818f 	beq.w	800c58c <_dtoa_r+0xb94>
@@ -32662,7 +32662,7 @@ ULONG parse_cmd(){
 0800c7dc <memcpy>:
  800c7dc:	440a      	add	r2, r1
  800c7de:	4291      	cmp	r1, r2
- 800c7e0:	f100 33ff 	add.w	r3, r0, #4294967295
+ 800c7e0:	f100 33ff 	add.w	r3, r0, #4294967295	; 0xffffffff
  800c7e4:	d100      	bne.n	800c7e8 <memcpy+0xc>
  800c7e6:	4770      	bx	lr
  800c7e8:	b510      	push	{r4, lr}
@@ -33199,7 +33199,7 @@ ULONG parse_cmd(){
  800cd20:	4283      	cmp	r3, r0
  800cd22:	d3f3      	bcc.n	800cd0c <__mcmp+0x18>
  800cd24:	e7fa      	b.n	800cd1c <__mcmp+0x28>
- 800cd26:	f04f 32ff 	mov.w	r2, #4294967295
+ 800cd26:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800cd2a:	e7f7      	b.n	800cd1c <__mcmp+0x28>
 
 0800cd2c <__mdiff>:
@@ -33581,7 +33581,7 @@ ULONG parse_cmd(){
  800d0b4:	89a3      	ldrh	r3, [r4, #12]
  800d0b6:	f043 0340 	orr.w	r3, r3, #64	; 0x40
  800d0ba:	81a3      	strh	r3, [r4, #12]
- 800d0bc:	f04f 30ff 	mov.w	r0, #4294967295
+ 800d0bc:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800d0c0:	e8bd 87f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, pc}
  800d0c4:	6921      	ldr	r1, [r4, #16]
  800d0c6:	464a      	mov	r2, r9
@@ -33642,7 +33642,7 @@ ULONG parse_cmd(){
  800d142:	b920      	cbnz	r0, 800d14e <_svfiprintf_r+0x2e>
  800d144:	230c      	movs	r3, #12
  800d146:	603b      	str	r3, [r7, #0]
- 800d148:	f04f 30ff 	mov.w	r0, #4294967295
+ 800d148:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800d14c:	e0d1      	b.n	800d2f2 <_svfiprintf_r+0x1d2>
  800d14e:	2340      	movs	r3, #64	; 0x40
  800d150:	616b      	str	r3, [r5, #20]
@@ -33677,7 +33677,7 @@ ULONG parse_cmd(){
  800d19e:	2b00      	cmp	r3, #0
  800d1a0:	f000 80a2 	beq.w	800d2e8 <_svfiprintf_r+0x1c8>
  800d1a4:	2300      	movs	r3, #0
- 800d1a6:	f04f 32ff 	mov.w	r2, #4294967295
+ 800d1a6:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800d1aa:	e9cd 2305 	strd	r2, r3, [sp, #20]
  800d1ae:	f10a 0a01 	add.w	sl, sl, #1
  800d1b2:	9304      	str	r3, [sp, #16]
@@ -33744,7 +33744,7 @@ ULONG parse_cmd(){
  800d242:	9203      	str	r2, [sp, #12]
  800d244:	2b00      	cmp	r3, #0
  800d246:	bfb8      	it	lt
- 800d248:	f04f 33ff 	movlt.w	r3, #4294967295
+ 800d248:	f04f 33ff 	movlt.w	r3, #4294967295	; 0xffffffff
  800d24c:	3402      	adds	r4, #2
  800d24e:	9305      	str	r3, [sp, #20]
  800d250:	f8df a0c8 	ldr.w	sl, [pc, #200]	; 800d31c <_svfiprintf_r+0x1fc>
@@ -33907,7 +33907,7 @@ ULONG parse_cmd(){
  800d3ba:	6e6b      	ldr	r3, [r5, #100]	; 0x64
  800d3bc:	07dc      	lsls	r4, r3, #31
  800d3be:	d50e      	bpl.n	800d3de <_vfiprintf_r+0x6a>
- 800d3c0:	f04f 30ff 	mov.w	r0, #4294967295
+ 800d3c0:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800d3c4:	b01d      	add	sp, #116	; 0x74
  800d3c6:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
  800d3ca:	4b7b      	ldr	r3, [pc, #492]	; (800d5b8 <_vfiprintf_r+0x244>)
@@ -33957,7 +33957,7 @@ ULONG parse_cmd(){
  800d438:	2b00      	cmp	r3, #0
  800d43a:	f000 80a2 	beq.w	800d582 <_vfiprintf_r+0x20e>
  800d43e:	2300      	movs	r3, #0
- 800d440:	f04f 32ff 	mov.w	r2, #4294967295
+ 800d440:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
  800d444:	e9cd 2305 	strd	r2, r3, [sp, #20]
  800d448:	f10a 0a01 	add.w	sl, sl, #1
  800d44c:	9304      	str	r3, [sp, #16]
@@ -34024,7 +34024,7 @@ ULONG parse_cmd(){
  800d4dc:	9203      	str	r2, [sp, #12]
  800d4de:	2b00      	cmp	r3, #0
  800d4e0:	bfb8      	it	lt
- 800d4e2:	f04f 33ff 	movlt.w	r3, #4294967295
+ 800d4e2:	f04f 33ff 	movlt.w	r3, #4294967295	; 0xffffffff
  800d4e6:	3402      	adds	r4, #2
  800d4e8:	9305      	str	r3, [sp, #20]
  800d4ea:	f8df a0e4 	ldr.w	sl, [pc, #228]	; 800d5d0 <_vfiprintf_r+0x25c>
@@ -34266,7 +34266,7 @@ ULONG parse_cmd(){
  800d704:	f000 f81e 	bl	800d744 <__swsetup_r>
  800d708:	2800      	cmp	r0, #0
  800d70a:	d0cb      	beq.n	800d6a4 <__swbuf_r+0x28>
- 800d70c:	f04f 37ff 	mov.w	r7, #4294967295
+ 800d70c:	f04f 37ff 	mov.w	r7, #4294967295	; 0xffffffff
  800d710:	e7ea      	b.n	800d6e8 <__swbuf_r+0x6c>
  800d712:	bf00      	nop
  800d714:	0800e008 	.word	0x0800e008
@@ -34316,7 +34316,7 @@ ULONG parse_cmd(){
  800d772:	6033      	str	r3, [r6, #0]
  800d774:	f042 0340 	orr.w	r3, r2, #64	; 0x40
  800d778:	81a3      	strh	r3, [r4, #12]
- 800d77a:	f04f 30ff 	mov.w	r0, #4294967295
+ 800d77a:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800d77e:	e03e      	b.n	800d7fe <__swsetup_r+0xba>
  800d780:	4b25      	ldr	r3, [pc, #148]	; (800d818 <__swsetup_r+0xd4>)
  800d782:	429c      	cmp	r4, r3
@@ -34542,7 +34542,7 @@ ULONG parse_cmd(){
  800d96c:	89a3      	ldrh	r3, [r4, #12]
  800d96e:	f043 0340 	orr.w	r3, r3, #64	; 0x40
  800d972:	81a3      	strh	r3, [r4, #12]
- 800d974:	f04f 30ff 	mov.w	r0, #4294967295
+ 800d974:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800d978:	e78e      	b.n	800d898 <__sflush_r+0x1c>
  800d97a:	4407      	add	r7, r0
  800d97c:	eba8 0800 	sub.w	r8, r8, r0
@@ -34837,7 +34837,7 @@ ULONG parse_cmd(){
  800dbf6:	238a      	movhi	r3, #138	; 0x8a
  800dbf8:	6003      	strhi	r3, [r0, #0]
  800dbfa:	700a      	strbls	r2, [r1, #0]
- 800dbfc:	f04f 30ff 	movhi.w	r0, #4294967295
+ 800dbfc:	f04f 30ff 	movhi.w	r0, #4294967295	; 0xffffffff
  800dc00:	bf98      	it	ls
  800dc02:	2001      	movls	r0, #1
  800dc04:	4770      	bx	lr
@@ -34902,7 +34902,7 @@ ULONG parse_cmd(){
  800dc74:	d904      	bls.n	800dc80 <_raise_r+0x14>
  800dc76:	2316      	movs	r3, #22
  800dc78:	6003      	str	r3, [r0, #0]
- 800dc7a:	f04f 30ff 	mov.w	r0, #4294967295
+ 800dc7a:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  800dc7e:	bd38      	pop	{r3, r4, r5, pc}
  800dc80:	6c42      	ldr	r2, [r0, #68]	; 0x44
  800dc82:	b112      	cbz	r2, 800dc8a <_raise_r+0x1e>

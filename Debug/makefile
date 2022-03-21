@@ -20,6 +20,7 @@ RM := rm -rf
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include AZURE_RTOS/App/subdir.mk
+-include subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -68,8 +69,8 @@ all: main-build
 main-build: Step-Motor-Controller-F4.elf secondary-outputs
 
 # Tool invocations
-Step-Motor-Controller-F4.elf: $(OBJS) $(USER_OBJS) C:\Users\prom.tecnici\STM32CubeIDE\wk\Step-Motor-Controller-F4\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Step-Motor-Controller-F4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\prom.tecnici\STM32CubeIDE\wk\Step-Motor-Controller-F4\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Step-Motor-Controller-F4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Step-Motor-Controller-F4.elf: $(OBJS) $(USER_OBJS) /Users/tommasocanova/Desktop/UNI/TIROCINIO/Progetto\ ProM/Step-motor-test-bench/STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Step-Motor-Controller-F4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/tommasocanova/Desktop/UNI/TIROCINIO/Progetto ProM/Step-motor-test-bench/STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Step-Motor-Controller-F4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -90,7 +91,7 @@ Step-Motor-Controller-F4.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TO
 
 # Other Targets
 clean:
-	-$(RM) Step-Motor-Controller-F4.bin Step-Motor-Controller-F4.elf Step-Motor-Controller-F4.list default.size.stdout
+	-$(RM) $(SIZE_OUTPUT)$(OBJDUMP_LIST)$(EXECUTABLES)$(OBJS)$(S_DEPS)$(S_UPPER_DEPS)$(C_DEPS)$(OBJCOPY_BIN) Step-Motor-Controller-F4.elf
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
@@ -102,6 +103,6 @@ fail-specified-linker-script-missing:
 warn-no-linker-script-specified:
 	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
 
-.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified
+.PHONY: all clean dependents fail-specified-linker-script-missing warn-no-linker-script-specified
 
 -include ../makefile.targets
