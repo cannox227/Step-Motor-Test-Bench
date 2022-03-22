@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   000289da  00000000  00000000  00090620  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000ab24f  00000000  00000000  000b8ffa  2**0
+ 18 .debug_str    000ab2af  00000000  00000000  000b8ffa  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  00164249  2**0
+ 19 .comment      00000053  00000000  00000000  001642a9  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00007a1c  00000000  00000000  0016429c  2**2
+ 20 .debug_frame  00007a1c  00000000  00000000  001642fc  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -77,175 +77,60 @@ Disassembly of section .text:
  80001dc:	0800dcf4 	.word	0x0800dcf4
 
 080001e0 <_tx_initialize_low_level>:
-    .thumb_func
-_tx_initialize_low_level:
-@
-@    /* Disable interrupts during ThreadX initialization.  */
-@
-    CPSID   i
  80001e0:	b672      	cpsid	i
-    STR     r1, [r0]                                @ Setup first unused memory pointer
-#endif
-@
-@    /* Setup Vector Table Offset Register.  */
-@
-    MOV     r0, #0xE000E000                         @ Build address of NVIC registers
  80001e2:	f04f 20e0 	mov.w	r0, #3758153728	; 0xe000e000
-    LDR     r1, =g_pfnVectors                           @ Pickup address of vector table
  80001e6:	4919      	ldr	r1, [pc, #100]	; (800024c <__tx_DBGHandler+0x4>)
-    STR     r1, [r0, #0xD08]                        @ Set vector table address
  80001e8:	f8c0 1d08 	str.w	r1, [r0, #3336]	; 0xd08
-@
-@    /* Set system stack pointer from vector value.  */
-@
-    LDR     r0, =_tx_thread_system_stack_ptr        @ Build address of system stack pointer
  80001ec:	4818      	ldr	r0, [pc, #96]	; (8000250 <__tx_DBGHandler+0x8>)
-    LDR     r1, =g_pfnVectors                           @ Pickup address of vector table
  80001ee:	4917      	ldr	r1, [pc, #92]	; (800024c <__tx_DBGHandler+0x4>)
-    LDR     r1, [r1]                                @ Pickup reset stack pointer
  80001f0:	6809      	ldr	r1, [r1, #0]
-    STR     r1, [r0]                                @ Save system stack pointer
  80001f2:	6001      	str	r1, [r0, #0]
-@
-@    /* Enable the cycle count register.  */
-@
-    LDR     r0, =0xE0001000                         @ Build address of DWT register
  80001f4:	4817      	ldr	r0, [pc, #92]	; (8000254 <__tx_DBGHandler+0xc>)
-    LDR     r1, [r0]                                @ Pickup the current value
  80001f6:	6801      	ldr	r1, [r0, #0]
-    ORR     r1, r1, #1                              @ Set the CYCCNTENA bit
  80001f8:	f041 0101 	orr.w	r1, r1, #1
-    STR     r1, [r0]                                @ Enable the cycle count register
  80001fc:	6001      	str	r1, [r0, #0]
-@
-@    /* Configure SysTick for 100Hz clock, or 16384 cycles if no reference.  */
-@
-    MOV     r0, #0xE000E000                         @ Build address of NVIC registers
  80001fe:	f04f 20e0 	mov.w	r0, #3758153728	; 0xe000e000
-    LDR     r1, =SYSTICK_CYCLES
  8000202:	4915      	ldr	r1, [pc, #84]	; (8000258 <__tx_DBGHandler+0x10>)
-    STR     r1, [r0, #0x14]                         @ Setup SysTick Reload Value
  8000204:	6141      	str	r1, [r0, #20]
-    MOV     r1, #0x7                                @ Build SysTick Control Enable Value
  8000206:	f04f 0107 	mov.w	r1, #7
-    STR     r1, [r0, #0x10]                         @ Setup SysTick Control
  800020a:	6101      	str	r1, [r0, #16]
-@
-@    /* Configure handler priorities.  */
-@
-    LDR     r1, =0x00000000                         @ Rsrv, UsgF, BusF, MemM
  800020c:	f04f 0100 	mov.w	r1, #0
-    STR     r1, [r0, #0xD18]                        @ Setup System Handlers 4-7 Priority Registers
  8000210:	f8c0 1d18 	str.w	r1, [r0, #3352]	; 0xd18
-
-    LDR     r1, =0xFF000000                         @ SVCl, Rsrv, Rsrv, Rsrv
  8000214:	f04f 417f 	mov.w	r1, #4278190080	; 0xff000000
-    STR     r1, [r0, #0xD1C]                        @ Setup System Handlers 8-11 Priority Registers
  8000218:	f8c0 1d1c 	str.w	r1, [r0, #3356]	; 0xd1c
-                                                    @ Note: SVC must be lowest priority, which is 0xFF
-
-    LDR     r1, =0x40FF0000                         @ SysT, PnSV, Rsrv, DbgM
  800021c:	490f      	ldr	r1, [pc, #60]	; (800025c <__tx_DBGHandler+0x14>)
-    STR     r1, [r0, #0xD20]                        @ Setup System Handlers 12-15 Priority Registers
  800021e:	f8c0 1d20 	str.w	r1, [r0, #3360]	; 0xd20
-                                                    @ Note: PnSV must be lowest priority, which is 0xFF
-@
-@    /* Return to caller.  */
-@
-    BX      lr
  8000222:	4770      	bx	lr
 
 08000224 <__tx_BadHandler>:
-@/* Define shells for each of the unused vectors.  */
-@
-    .global  __tx_BadHandler
-    .thumb_func
-__tx_BadHandler:
-    B       __tx_BadHandler
  8000224:	f7ff bffe 	b.w	8000224 <__tx_BadHandler>
 
 08000228 <__tx_HardfaultHandler>:
-@ /* added to catch the hardfault */
-
-    .global  __tx_HardfaultHandler
-    .thumb_func
-__tx_HardfaultHandler:
-    B       __tx_HardfaultHandler
  8000228:	f7ff bffe 	b.w	8000228 <__tx_HardfaultHandler>
 
 0800022c <__tx_SVCallHandler>:
-@ /* added to catch the SVC */
-
-    .global  __tx_SVCallHandler
-    .thumb_func
-__tx_SVCallHandler:
-    B       __tx_SVCallHandler
  800022c:	f7ff bffe 	b.w	800022c <__tx_SVCallHandler>
 
 08000230 <__tx_IntHandler>:
-    .global  __tx_IntHandler
-    .thumb_func
-__tx_IntHandler:
-@ VOID InterruptHandler (VOID)
-@ {
-    PUSH    {r0, lr}
  8000230:	b501      	push	{r0, lr}
-@    /* BL <your C Function>.... */
-
-#ifdef TX_ENABLE_EXECUTION_CHANGE_NOTIFY
-    BL      _tx_execution_isr_exit              @ Call the ISR exit function
-#endif
-    POP     {r0, lr}
  8000232:	e8bd 4001 	ldmia.w	sp!, {r0, lr}
-    BX      LR
  8000236:	4770      	bx	lr
 
 08000238 <SysTick_Handler>:
-    .thumb_func
-SysTick_Handler:
-@ VOID TimerInterruptHandler (VOID)
-@ {
-@
-    PUSH    {r0, lr}
  8000238:	b501      	push	{r0, lr}
-#ifdef TX_ENABLE_EXECUTION_CHANGE_NOTIFY
-    BL      _tx_execution_isr_enter             @ Call the ISR enter function
-#endif
-    BL      _tx_timer_interrupt
  800023a:	f000 f891 	bl	8000360 <_tx_timer_interrupt>
-#ifdef TX_ENABLE_EXECUTION_CHANGE_NOTIFY
-    BL      _tx_execution_isr_exit              @ Call the ISR exit function
-#endif
-    POP     {r0, lr}
  800023e:	e8bd 4001 	ldmia.w	sp!, {r0, lr}
-    BX      LR
  8000242:	4770      	bx	lr
 
 08000244 <__tx_NMIHandler>:
-
-@ /* NMI, DBG handlers */
-    .global  __tx_NMIHandler
-    .thumb_func
-__tx_NMIHandler:
-    B       __tx_NMIHandler
  8000244:	f7ff bffe 	b.w	8000244 <__tx_NMIHandler>
 
 08000248 <__tx_DBGHandler>:
-
-    .global  __tx_DBGHandler
-    .thumb_func
-__tx_DBGHandler:
-    B       __tx_DBGHandler
  8000248:	f7ff bffe 	b.w	8000248 <__tx_DBGHandler>
-    LDR     r1, =g_pfnVectors                           @ Pickup address of vector table
  800024c:	08000000 	.word	0x08000000
-    LDR     r0, =_tx_thread_system_stack_ptr        @ Build address of system stack pointer
  8000250:	20002ad4 	.word	0x20002ad4
-    LDR     r0, =0xE0001000                         @ Build address of DWT register
  8000254:	e0001000 	.word	0xe0001000
-    LDR     r1, =SYSTICK_CYCLES
  8000258:	000cd13f 	.word	0x000cd13f
-    LDR     r1, =0x40FF0000                         @ SysT, PnSV, Rsrv, DbgM
  800025c:	40ff0000 	.word	0x40ff0000
 
 08000260 <_tx_thread_schedule>:
@@ -3358,78 +3243,50 @@ void EXTI15_10_IRQHandler(void)
  800185e:	bd80      	pop	{r7, pc}
 
 08001860 <_getpid>:
-void initialise_monitor_handles()
-{
-}
-
-int _getpid(void)
-{
  8001860:	b480      	push	{r7}
  8001862:	af00      	add	r7, sp, #0
-	return 1;
  8001864:	2301      	movs	r3, #1
-}
  8001866:	4618      	mov	r0, r3
  8001868:	46bd      	mov	sp, r7
  800186a:	f85d 7b04 	ldr.w	r7, [sp], #4
  800186e:	4770      	bx	lr
 
 08001870 <_kill>:
-
-int _kill(int pid, int sig)
-{
  8001870:	b580      	push	{r7, lr}
  8001872:	b082      	sub	sp, #8
  8001874:	af00      	add	r7, sp, #0
  8001876:	6078      	str	r0, [r7, #4]
  8001878:	6039      	str	r1, [r7, #0]
-	errno = EINVAL;
  800187a:	f009 fad3 	bl	800ae24 <__errno>
  800187e:	4603      	mov	r3, r0
  8001880:	2216      	movs	r2, #22
  8001882:	601a      	str	r2, [r3, #0]
-	return -1;
  8001884:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
-}
  8001888:	4618      	mov	r0, r3
  800188a:	3708      	adds	r7, #8
  800188c:	46bd      	mov	sp, r7
  800188e:	bd80      	pop	{r7, pc}
 
 08001890 <_exit>:
-
-void _exit (int status)
-{
  8001890:	b580      	push	{r7, lr}
  8001892:	b082      	sub	sp, #8
  8001894:	af00      	add	r7, sp, #0
  8001896:	6078      	str	r0, [r7, #4]
-	_kill(status, -1);
  8001898:	f04f 31ff 	mov.w	r1, #4294967295	; 0xffffffff
  800189c:	6878      	ldr	r0, [r7, #4]
  800189e:	f7ff ffe7 	bl	8001870 <_kill>
-	while (1) {}		/* Make sure we hang here */
  80018a2:	e7fe      	b.n	80018a2 <_exit+0x12>
 
 080018a4 <_read>:
-}
-
-__attribute__((weak)) int _read(int file, char *ptr, int len)
-{
  80018a4:	b580      	push	{r7, lr}
  80018a6:	b086      	sub	sp, #24
  80018a8:	af00      	add	r7, sp, #0
  80018aa:	60f8      	str	r0, [r7, #12]
  80018ac:	60b9      	str	r1, [r7, #8]
  80018ae:	607a      	str	r2, [r7, #4]
-	int DataIdx;
-
-	for (DataIdx = 0; DataIdx < len; DataIdx++)
  80018b0:	2300      	movs	r3, #0
  80018b2:	617b      	str	r3, [r7, #20]
  80018b4:	e00a      	b.n	80018cc <_read+0x28>
-	{
-		*ptr++ = __io_getchar();
  80018b6:	f3af 8000 	nop.w
  80018ba:	4601      	mov	r1, r0
  80018bc:	68bb      	ldr	r3, [r7, #8]
@@ -3437,7 +3294,6 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
  80018c0:	60ba      	str	r2, [r7, #8]
  80018c2:	b2ca      	uxtb	r2, r1
  80018c4:	701a      	strb	r2, [r3, #0]
-	for (DataIdx = 0; DataIdx < len; DataIdx++)
  80018c6:	697b      	ldr	r3, [r7, #20]
  80018c8:	3301      	adds	r3, #1
  80018ca:	617b      	str	r3, [r7, #20]
@@ -3445,41 +3301,28 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
  80018ce:	687b      	ldr	r3, [r7, #4]
  80018d0:	429a      	cmp	r2, r3
  80018d2:	dbf0      	blt.n	80018b6 <_read+0x12>
-	}
-
-return len;
  80018d4:	687b      	ldr	r3, [r7, #4]
-}
  80018d6:	4618      	mov	r0, r3
  80018d8:	3718      	adds	r7, #24
  80018da:	46bd      	mov	sp, r7
  80018dc:	bd80      	pop	{r7, pc}
 
 080018de <_write>:
-
-__attribute__((weak)) int _write(int file, char *ptr, int len)
-{
  80018de:	b580      	push	{r7, lr}
  80018e0:	b086      	sub	sp, #24
  80018e2:	af00      	add	r7, sp, #0
  80018e4:	60f8      	str	r0, [r7, #12]
  80018e6:	60b9      	str	r1, [r7, #8]
  80018e8:	607a      	str	r2, [r7, #4]
-	int DataIdx;
-
-	for (DataIdx = 0; DataIdx < len; DataIdx++)
  80018ea:	2300      	movs	r3, #0
  80018ec:	617b      	str	r3, [r7, #20]
  80018ee:	e009      	b.n	8001904 <_write+0x26>
-	{
-		__io_putchar(*ptr++);
  80018f0:	68bb      	ldr	r3, [r7, #8]
  80018f2:	1c5a      	adds	r2, r3, #1
  80018f4:	60ba      	str	r2, [r7, #8]
  80018f6:	781b      	ldrb	r3, [r3, #0]
  80018f8:	4618      	mov	r0, r3
  80018fa:	f3af 8000 	nop.w
-	for (DataIdx = 0; DataIdx < len; DataIdx++)
  80018fe:	697b      	ldr	r3, [r7, #20]
  8001900:	3301      	adds	r3, #1
  8001902:	617b      	str	r3, [r7, #20]
@@ -3487,26 +3330,18 @@ __attribute__((weak)) int _write(int file, char *ptr, int len)
  8001906:	687b      	ldr	r3, [r7, #4]
  8001908:	429a      	cmp	r2, r3
  800190a:	dbf1      	blt.n	80018f0 <_write+0x12>
-	}
-	return len;
  800190c:	687b      	ldr	r3, [r7, #4]
-}
  800190e:	4618      	mov	r0, r3
  8001910:	3718      	adds	r7, #24
  8001912:	46bd      	mov	sp, r7
  8001914:	bd80      	pop	{r7, pc}
 
 08001916 <_close>:
-
-int _close(int file)
-{
  8001916:	b480      	push	{r7}
  8001918:	b083      	sub	sp, #12
  800191a:	af00      	add	r7, sp, #0
  800191c:	6078      	str	r0, [r7, #4]
-	return -1;
  800191e:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
-}
  8001922:	4618      	mov	r0, r3
  8001924:	370c      	adds	r7, #12
  8001926:	46bd      	mov	sp, r7
@@ -3514,22 +3349,15 @@ int _close(int file)
  800192c:	4770      	bx	lr
 
 0800192e <_fstat>:
-
-
-int _fstat(int file, struct stat *st)
-{
  800192e:	b480      	push	{r7}
  8001930:	b083      	sub	sp, #12
  8001932:	af00      	add	r7, sp, #0
  8001934:	6078      	str	r0, [r7, #4]
  8001936:	6039      	str	r1, [r7, #0]
-	st->st_mode = S_IFCHR;
  8001938:	683b      	ldr	r3, [r7, #0]
  800193a:	f44f 5200 	mov.w	r2, #8192	; 0x2000
  800193e:	605a      	str	r2, [r3, #4]
-	return 0;
  8001940:	2300      	movs	r3, #0
-}
  8001942:	4618      	mov	r0, r3
  8001944:	370c      	adds	r7, #12
  8001946:	46bd      	mov	sp, r7
@@ -3537,16 +3365,11 @@ int _fstat(int file, struct stat *st)
  800194c:	4770      	bx	lr
 
 0800194e <_isatty>:
-
-int _isatty(int file)
-{
  800194e:	b480      	push	{r7}
  8001950:	b083      	sub	sp, #12
  8001952:	af00      	add	r7, sp, #0
  8001954:	6078      	str	r0, [r7, #4]
-	return 1;
  8001956:	2301      	movs	r3, #1
-}
  8001958:	4618      	mov	r0, r3
  800195a:	370c      	adds	r7, #12
  800195c:	46bd      	mov	sp, r7
@@ -3554,18 +3377,13 @@ int _isatty(int file)
  8001962:	4770      	bx	lr
 
 08001964 <_lseek>:
-
-int _lseek(int file, int ptr, int dir)
-{
  8001964:	b480      	push	{r7}
  8001966:	b085      	sub	sp, #20
  8001968:	af00      	add	r7, sp, #0
  800196a:	60f8      	str	r0, [r7, #12]
  800196c:	60b9      	str	r1, [r7, #8]
  800196e:	607a      	str	r2, [r7, #4]
-	return 0;
  8001970:	2300      	movs	r3, #0
-}
  8001972:	4618      	mov	r0, r3
  8001974:	3714      	adds	r7, #20
  8001976:	46bd      	mov	sp, r7
@@ -3574,44 +3392,23 @@ int _lseek(int file, int ptr, int dir)
 	...
 
 08001980 <_sbrk>:
- *
- * @param incr Memory size
- * @return Pointer to allocated memory
- */
-void *_sbrk(ptrdiff_t incr)
-{
  8001980:	b580      	push	{r7, lr}
  8001982:	b086      	sub	sp, #24
  8001984:	af00      	add	r7, sp, #0
  8001986:	6078      	str	r0, [r7, #4]
-  extern uint8_t _end; /* Symbol defined in the linker script */
-  extern uint8_t _estack; /* Symbol defined in the linker script */
-  extern uint32_t _Min_Stack_Size; /* Symbol defined in the linker script */
-  const uint32_t stack_limit = (uint32_t)&_estack - (uint32_t)&_Min_Stack_Size;
  8001988:	4a14      	ldr	r2, [pc, #80]	; (80019dc <_sbrk+0x5c>)
  800198a:	4b15      	ldr	r3, [pc, #84]	; (80019e0 <_sbrk+0x60>)
  800198c:	1ad3      	subs	r3, r2, r3
  800198e:	617b      	str	r3, [r7, #20]
-  const uint8_t *max_heap = (uint8_t *)stack_limit;
  8001990:	697b      	ldr	r3, [r7, #20]
  8001992:	613b      	str	r3, [r7, #16]
-  uint8_t *prev_heap_end;
-
-  /* Initialize heap end at first call */
-  if (NULL == __sbrk_heap_end)
  8001994:	4b13      	ldr	r3, [pc, #76]	; (80019e4 <_sbrk+0x64>)
  8001996:	681b      	ldr	r3, [r3, #0]
  8001998:	2b00      	cmp	r3, #0
  800199a:	d102      	bne.n	80019a2 <_sbrk+0x22>
-  {
-    __sbrk_heap_end = &_end;
  800199c:	4b11      	ldr	r3, [pc, #68]	; (80019e4 <_sbrk+0x64>)
  800199e:	4a12      	ldr	r2, [pc, #72]	; (80019e8 <_sbrk+0x68>)
  80019a0:	601a      	str	r2, [r3, #0]
-  }
-
-  /* Protect heap from growing into the reserved MSP stack */
-  if (__sbrk_heap_end + incr > max_heap)
  80019a2:	4b10      	ldr	r3, [pc, #64]	; (80019e4 <_sbrk+0x64>)
  80019a4:	681a      	ldr	r2, [r3, #0]
  80019a6:	687b      	ldr	r3, [r7, #4]
@@ -3619,32 +3416,22 @@ void *_sbrk(ptrdiff_t incr)
  80019aa:	693a      	ldr	r2, [r7, #16]
  80019ac:	429a      	cmp	r2, r3
  80019ae:	d207      	bcs.n	80019c0 <_sbrk+0x40>
-  {
-    errno = ENOMEM;
  80019b0:	f009 fa38 	bl	800ae24 <__errno>
  80019b4:	4603      	mov	r3, r0
  80019b6:	220c      	movs	r2, #12
  80019b8:	601a      	str	r2, [r3, #0]
-    return (void *)-1;
  80019ba:	f04f 33ff 	mov.w	r3, #4294967295	; 0xffffffff
  80019be:	e009      	b.n	80019d4 <_sbrk+0x54>
-  }
-
-  prev_heap_end = __sbrk_heap_end;
  80019c0:	4b08      	ldr	r3, [pc, #32]	; (80019e4 <_sbrk+0x64>)
  80019c2:	681b      	ldr	r3, [r3, #0]
  80019c4:	60fb      	str	r3, [r7, #12]
-  __sbrk_heap_end += incr;
  80019c6:	4b07      	ldr	r3, [pc, #28]	; (80019e4 <_sbrk+0x64>)
  80019c8:	681a      	ldr	r2, [r3, #0]
  80019ca:	687b      	ldr	r3, [r7, #4]
  80019cc:	4413      	add	r3, r2
  80019ce:	4a05      	ldr	r2, [pc, #20]	; (80019e4 <_sbrk+0x64>)
  80019d0:	6013      	str	r3, [r2, #0]
-
-  return (void *)prev_heap_end;
  80019d2:	68fb      	ldr	r3, [r7, #12]
-}
  80019d4:	4618      	mov	r0, r3
  80019d6:	3718      	adds	r7, #24
  80019d8:	46bd      	mov	sp, r7

@@ -69,8 +69,8 @@ all: main-build
 main-build: Step-Motor-Controller-F4.elf secondary-outputs
 
 # Tool invocations
-Step-Motor-Controller-F4.elf: $(OBJS) $(USER_OBJS) /Users/tommasocanova/Desktop/UNI/TIROCINIO/Progetto\ ProM/Step-motor-test-bench/STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Step-Motor-Controller-F4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/tommasocanova/Desktop/UNI/TIROCINIO/Progetto ProM/Step-motor-test-bench/STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Step-Motor-Controller-F4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Step-Motor-Controller-F4.elf: $(OBJS) $(USER_OBJS) /Users/tommasocanova/Desktop/UNI/TIROCINIO/Progetto\ ProM/Step-Motor-Test-Bench/FW_STM32F4/STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Step-Motor-Controller-F4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/tommasocanova/Desktop/UNI/TIROCINIO/Progetto ProM/Step-Motor-Test-Bench/FW_STM32F4/STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Step-Motor-Controller-F4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

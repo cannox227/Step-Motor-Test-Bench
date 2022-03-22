@@ -128,4 +128,18 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+#Mac
 .DS_Store
+
+#Cube IDE
+# STM32Cube copied library and project folders
+Drivers/*
+MDK-ARM/*
+EWARM/*
+Debug/*
+# CrossWorks project files
+!*/*.hzp
+!*/*.hzs
+
+*.o
+.mxproject
