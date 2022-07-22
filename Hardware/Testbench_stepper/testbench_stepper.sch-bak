@@ -1,0 +1,228 @@
+EESchema Schematic File Version 4
+LIBS:testbench_stepper-cache
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector:Conn_01x08_Male J1
+U 1 1 61EEE892
+P 2150 1600
+F 0 "J1" H 2250 2200 50  0000 C CNN
+F 1 "Conn_01x08_Male" H 2250 2100 50  0000 C CNN
+F 2 "" H 2150 1600 50  0001 C CNN
+F 3 "~" H 2150 1600 50  0001 C CNN
+	1    2150 1600
+	1    0    0    -1  
+$EndComp
+Text Label 2350 1300 0    50   ~ 0
+VDD
+Text Label 2350 1400 0    50   ~ 0
+VDD
+Text Label 2350 1500 0    50   ~ 0
+TRQ
+Text Label 2350 1600 0    50   ~ 0
+TRQ
+Text Label 2350 1700 0    50   ~ 0
+GND
+Text Label 2350 1800 0    50   ~ 0
+GND
+Text Label 2350 1900 0    50   ~ 0
+VREF
+Text Label 2350 2000 0    50   ~ 0
+VREF
+Text Notes 1850 1350 0    50   ~ 0
+WHITE\n
+Text Notes 1850 1550 0    50   ~ 0
+BROWN
+Text Notes 1850 1750 0    50   ~ 0
+BLACK\n
+Text Notes 1850 1950 0    50   ~ 0
+GREY
+$Comp
+L Device:C C2
+U 1 1 61F0778B
+P 6350 1600
+F 0 "C2" H 6465 1646 50  0000 L CNN
+F 1 "100n" H 6465 1555 50  0000 L CNN
+F 2 "" H 6388 1450 50  0001 C CNN
+F 3 "~" H 6350 1600 50  0001 C CNN
+	1    6350 1600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6150 1450 6350 1450
+$Comp
+L power:GND #PWR?
+U 1 1 61F081F5
+P 6350 1750
+F 0 "#PWR?" H 6350 1500 50  0001 C CNN
+F 1 "GND" H 6355 1577 50  0000 C CNN
+F 2 "" H 6350 1750 50  0001 C CNN
+F 3 "" H 6350 1750 50  0001 C CNN
+	1    6350 1750
+	1    0    0    -1  
+$EndComp
+Text Label 5850 1450 2    50   ~ 0
+TRQ_BUFF
+$Comp
+L power:+5V #PWR?
+U 1 1 61F1ACFB
+P 5150 1200
+F 0 "#PWR?" H 5150 1050 50  0001 C CNN
+F 1 "+5V" H 5165 1373 50  0000 C CNN
+F 2 "" H 5150 1200 50  0001 C CNN
+F 3 "" H 5150 1200 50  0001 C CNN
+	1    5150 1200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C1
+U 1 1 61F1BAC2
+P 5150 1400
+F 0 "C1" H 5265 1446 50  0000 L CNN
+F 1 "0.1u" H 5265 1355 50  0000 L CNN
+F 2 "" H 5188 1250 50  0001 C CNN
+F 3 "~" H 5150 1400 50  0001 C CNN
+	1    5150 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 61EEE1EA
+P 6750 2150
+F 0 "#PWR?" H 6750 1900 50  0001 C CNN
+F 1 "GND" H 6755 1977 50  0000 C CNN
+F 2 "" H 6750 2150 50  0001 C CNN
+F 3 "" H 6750 2150 50  0001 C CNN
+	1    6750 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6750 1800 6750 1850
+Connection ~ 6750 1800
+Wire Wire Line
+	7200 1800 6750 1800
+Text Label 7200 1800 0    50   ~ 0
+ADC
+Wire Wire Line
+	6750 1750 6750 1800
+$Comp
+L Device:R R3
+U 1 1 61EEC2E8
+P 6750 2000
+F 0 "R3" H 6820 2046 50  0000 L CNN
+F 1 "33K" H 6820 1955 50  0000 L CNN
+F 2 "" V 6680 2000 50  0001 C CNN
+F 3 "~" H 6750 2000 50  0001 C CNN
+	1    6750 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 61EEB560
+P 6750 1600
+F 0 "R2" H 6820 1646 50  0000 L CNN
+F 1 "2K" H 6820 1555 50  0000 L CNN
+F 2 "" V 6680 1600 50  0001 C CNN
+F 3 "~" H 6750 1600 50  0001 C CNN
+	1    6750 1600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6750 1450 6350 1450
+Connection ~ 6350 1450
+$Comp
+L power:GND #PWR?
+U 1 1 61F20B80
+P 5150 1550
+F 0 "#PWR?" H 5150 1300 50  0001 C CNN
+F 1 "GND" H 5155 1377 50  0000 C CNN
+F 2 "" H 5150 1550 50  0001 C CNN
+F 3 "" H 5150 1550 50  0001 C CNN
+	1    5150 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 1250 4950 1250
+Wire Wire Line
+	5150 1200 5150 1250
+Connection ~ 5150 1250
+Wire Wire Line
+	4950 1250 4950 1800
+Text Label 5050 1900 0    50   ~ 0
+ADC_BUFF
+Wire Wire Line
+	4950 1900 4850 1900
+Wire Wire Line
+	4950 2000 4950 1900
+Wire Wire Line
+	4850 2000 4950 2000
+Text Label 5050 2100 0    50   ~ 0
+ADC
+Wire Wire Line
+	4850 1800 4950 1800
+$Comp
+L power:GND #PWR?
+U 1 1 61F1ABA4
+P 4100 2100
+F 0 "#PWR?" H 4100 1850 50  0001 C CNN
+F 1 "GND" H 4105 1927 50  0000 C CNN
+F 2 "" H 4100 2100 50  0001 C CNN
+F 3 "" H 4100 2100 50  0001 C CNN
+	1    4100 2100
+	1    0    0    -1  
+$EndComp
+Text Label 3900 1800 2    50   ~ 0
+TRQ_BUFF
+Wire Wire Line
+	4050 1800 4100 1800
+Wire Wire Line
+	4050 1900 4050 1800
+Wire Wire Line
+	4100 1900 4050 1900
+$Comp
+L EncoderLib:LM358P U1
+U 1 1 61F11F5E
+P 4450 2000
+F 0 "U1" H 4475 2467 50  0000 C CNN
+F 1 "LM358P" H 4475 2376 50  0000 C CNN
+F 2 "" H 4450 2550 50  0001 C CNN
+F 3 "" H 4450 2550 50  0001 C CNN
+	1    4450 2000
+	1    0    0    -1  
+$EndComp
+Text Label 3900 2000 2    50   ~ 0
+TRQ
+$Comp
+L Device:R R1
+U 1 1 61F070B5
+P 6000 1450
+F 0 "R1" V 5793 1450 50  0000 C CNN
+F 1 "10k" V 5884 1450 50  0000 C CNN
+F 2 "" V 5930 1450 50  0001 C CNN
+F 3 "~" H 6000 1450 50  0001 C CNN
+	1    6000 1450
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4100 2000 3900 2000
+Wire Wire Line
+	4050 1800 3900 1800
+Connection ~ 4050 1800
+Wire Wire Line
+	4850 2100 5050 2100
+Wire Wire Line
+	4950 1900 5050 1900
+Connection ~ 4950 1900
+$EndSCHEMATC
