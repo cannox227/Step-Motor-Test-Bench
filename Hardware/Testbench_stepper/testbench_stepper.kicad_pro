@@ -422,6 +422,10 @@
     [
       "76dcd9d5-5572-40f4-8fd8-c85b67346c2b",
       "Sensing"
+    ],
+    [
+      "15d404d4-b523-49fd-a930-3a961bc97382",
+      "Power"
     ]
   ],
   "text_variables": {}
