@@ -2129,7 +2129,7 @@
   (symbol (lib_id "Simulation_SPICE:DIODE") (at 222.25 109.22 270) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 1ace4ef3-b7e6-49d2-9f68-7822c4b56ed3)
-    (property "Reference" "D?" (id 0) (at 229.87 109.855 90)
+    (property "Reference" "D5" (id 0) (at 229.87 109.855 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "DIODE" (id 1) (at 229.87 107.315 90)
