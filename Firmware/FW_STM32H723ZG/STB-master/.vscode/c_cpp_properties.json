@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "name": "STM32",
+      "includePath": [
+        "Core/Inc",
+        "Core/Lib/pwm",
+        "Core/Lib/timer_utils",
+        "Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+        "Drivers/CMSIS/Include",
+        "Drivers/STM32H7xx_HAL_Driver/Inc",
+        "Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"
+      ],
+      "defines": [
+        "STM32H723xx",
+        "USE_HAL_DRIVER"
+      ],
+      "compilerPath": "/Users/tommasocanova/Library/Application Support/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-none-eabi-gcc/10.2.1-1.1.2/.content/bin/arm-none-eabi-gcc"
+    }
+  ],
+  "version": 4
+}
