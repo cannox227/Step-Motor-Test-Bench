@@ -473,20 +473,20 @@
     (path "/76dcd9d5-5572-40f4-8fd8-c85b67346c2b/f7234674-85e9-48a3-be6b-088f7c64dcb4"
       (reference "R27") (unit 1) (value "R") (footprint "Resistor_SMD:R_0603_1608Metric")
     )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/35dea827-b34f-4f77-a2ac-e983400979db"
-      (reference "TP_5V") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
-    )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/2cfc9b37-b85f-4712-b16e-5776fdbc008f"
-      (reference "TP_12V") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
-    )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/3eca6751-5254-4513-8329-f17714d342ff"
-      (reference "TP_24V") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
-    )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/bbe613de-ef74-4a23-adad-acd59177b262"
-      (reference "TP_BRAKE") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
+      (reference "TP1") (unit 1) (value "24V") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
     )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/8694f56d-539c-4795-bf11-3deee09872f4"
-      (reference "TP_TORQUE") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
+      (reference "TP2") (unit 1) (value "TORQUE") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
+    )
+    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/2cfc9b37-b85f-4712-b16e-5776fdbc008f"
+      (reference "TP3") (unit 1) (value "12V") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
+    )
+    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/35dea827-b34f-4f77-a2ac-e983400979db"
+      (reference "TP4") (unit 1) (value "5V") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
+    )
+    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/bbe613de-ef74-4a23-adad-acd59177b262"
+      (reference "TP5") (unit 1) (value "BRAKE") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
     )
     (path "/76dcd9d5-5572-40f4-8fd8-c85b67346c2b/e3e0188a-7db6-4d67-919a-3f3f8dd21d9b"
       (reference "U1") (unit 1) (value "LM358P") (footprint "Package_DIP:DIP-8_W7.62mm")
