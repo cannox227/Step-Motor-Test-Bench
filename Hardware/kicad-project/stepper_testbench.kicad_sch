@@ -167,14 +167,8 @@
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/5e1d6f5b-3939-4d5e-a386-9c526eea669e"
       (reference "#PWR0110") (unit 1) (value "+12V") (footprint "")
     )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/7685bb40-b194-4360-bbf0-60216d3c0892"
-      (reference "#PWR0111") (unit 1) (value "+24V") (footprint "")
-    )
     (path "/76dcd9d5-5572-40f4-8fd8-c85b67346c2b/c241bfed-3e4a-4bb7-a9d8-ad5151bf1b04"
       (reference "#PWR0112") (unit 1) (value "+5V") (footprint "")
-    )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/6fa24cc9-df5b-432a-a444-8b49b8877c76"
-      (reference "#PWR0113") (unit 1) (value "GND") (footprint "")
     )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/018937aa-18ab-482c-a908-d394987a64bb"
       (reference "#PWR0114") (unit 1) (value "GND") (footprint "")
@@ -256,9 +250,6 @@
     )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/f3b84ade-5063-4c7d-8b60-8e0e4169c7d6"
       (reference "#PWR0140") (unit 1) (value "+24V") (footprint "")
-    )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/c41ce28b-a354-4626-8f82-6c96cec94e66"
-      (reference "#PWR0141") (unit 1) (value "+24V") (footprint "")
     )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/1e4dd6e0-1d3d-4e13-b692-730253c5fe5f"
       (reference "#PWR0142") (unit 1) (value "GND") (footprint "")
@@ -377,9 +368,6 @@
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/f3562dce-a92a-44bf-a663-f81f45d3a4a8"
       (reference "J2") (unit 1) (value "Conn_01x08") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical")
     )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/6d671474-d4b4-4abc-9a10-2e5fa30e88d4"
-      (reference "J3") (unit 1) (value "PWM module connector") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
-    )
     (path "/15d404d4-b523-49fd-a930-3a961bc97382/8aabd5b6-3e0f-48d8-900e-4526ae7ae02e"
       (reference "J4") (unit 1) (value "Conn_01x02") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
     )
@@ -403,9 +391,6 @@
     )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/0334b724-5361-434d-9968-38fdd8536025"
       (reference "R4") (unit 1) (value "0") (footprint "Resistor_SMD:R_0603_1608Metric")
-    )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/dff7f581-f0c1-47b7-9e33-de798cecda44"
-      (reference "R5") (unit 1) (value "0") (footprint "Resistor_SMD:R_0603_1608Metric")
     )
     (path "/76dcd9d5-5572-40f4-8fd8-c85b67346c2b/193dfd91-dbbf-403e-bcf3-7bf1466bec8e"
       (reference "R6") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0603_1608Metric")
@@ -472,9 +457,6 @@
     )
     (path "/76dcd9d5-5572-40f4-8fd8-c85b67346c2b/f7234674-85e9-48a3-be6b-088f7c64dcb4"
       (reference "R27") (unit 1) (value "R") (footprint "Resistor_SMD:R_0603_1608Metric")
-    )
-    (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/3eca6751-5254-4513-8329-f17714d342ff"
-      (reference "TP1") (unit 1) (value "24V") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
     )
     (path "/33c67a60-9974-4ffa-9a2b-91cb449320d0/8694f56d-539c-4795-bf11-3deee09872f4"
       (reference "TP2") (unit 1) (value "TORQUE") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
