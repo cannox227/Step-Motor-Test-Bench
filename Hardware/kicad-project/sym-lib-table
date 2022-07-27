@@ -1,4 +1,3 @@
 (sym_lib_table
-  (lib (name "EncoderLib")(type "Legacy")(uri "${KIPRJMOD}/EncoderLib.lib")(options "")(descr ""))
-  (lib (name "Sensing lib")(type "KiCad")(uri "${KIPRJMOD}/Sensing lib.kicad_sym")(options "")(descr ""))
+  (lib (name "SensingLib")(type "KiCad")(uri "${KIPRJMOD}/lib/symbol/CAS-6-NP.kicad_sym")(options "")(descr ""))
 )
