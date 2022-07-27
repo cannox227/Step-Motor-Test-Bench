@@ -339,10 +339,10 @@
       (reference "D1") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-323")
     )
     (path "/15d404d4-b523-49fd-a930-3a961bc97382/20eed0a3-a5be-444e-8223-20322196c433"
-      (reference "D2") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SMA")
+      (reference "D2") (unit 1) (value "DIODE") (footprint "Diode_SMD:D_SOD-323")
     )
     (path "/15d404d4-b523-49fd-a930-3a961bc97382/ac2c4c45-26cb-4939-b091-68cf02b2bac2"
-      (reference "D3") (unit 1) (value "D_Zener") (footprint "Diode_SMD:D_SOD-323")
+      (reference "D3") (unit 1) (value "D_Zener") (footprint "Diode_SMD:D_SMA")
     )
     (path "/15d404d4-b523-49fd-a930-3a961bc97382/2162098b-eca2-4e17-9202-b785752e831e"
       (reference "D4") (unit 1) (value "LED_RED") (footprint "LED_SMD:LED_0603_1608Metric")
