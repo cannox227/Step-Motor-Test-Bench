@@ -4138,7 +4138,7 @@
   (gr_text "@ProM Facility, Rovereto\nDesigned by\nCanova Tommaso, Santarossa Lisa\n" (at 173.609 101.639 90) (layer "B.SilkS") (tstamp bb304e6f-a650-4f29-9119-1512d4198a6c)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
-  (gr_text "MOTOR SUPPLY\n" (at 117.856 62.992) (layer "F.SilkS") (tstamp 01cfdfbf-108d-4ca7-8037-c3e108e74d16)
+  (gr_text "STEPPER SUPPLY\n" (at 117.856 62.992) (layer "F.SilkS") (tstamp 01cfdfbf-108d-4ca7-8037-c3e108e74d16)
     (effects (font (size 1 1) (thickness 0.25)) (justify left))
   )
   (gr_text "GND\n" (at 144.875 132.95 90) (layer "F.SilkS") (tstamp 0d442fac-ff32-44a3-a12e-7455a816ff9b)
