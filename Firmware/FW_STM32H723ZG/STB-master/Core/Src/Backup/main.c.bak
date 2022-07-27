@@ -25,11 +25,11 @@
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
+#include "pwm.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "pwm.h"
-#include <stdbool.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +39,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CMD_PAYLOAD_LENGHT 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,28 +50,6 @@
 
 /* USER CODE BEGIN PV */
 
-typedef struct
-{
-  bool is_word_complete;
-  char cmd_received[CMD_PAYLOAD_LENGHT];
-  char last_char_received;
-  uint8_t char_index;
-} uart_rx_handler;
-
-typedef enum
-{
-  INIT = 0U,
-  WAITING_FOR_CMD,
-  CMD_RECEIVED,
-  START_MOTOR,
-  GET_MOTOR_ACK_ON_START,
-  SENSOR_READING,
-  STOP_MOTOR,
-  GET_MOTOR_ACK_ON_STOP
-} master_states;
-
-char rx_char;
-uart_rx_handler gui_cmd_handler;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,9 +71,6 @@ void PeriphCommonClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  gui_cmd_handler.is_word_complete = false;
-  gui_cmd_handler.char_index = 0;
-  memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
 
   /* USER CODE END 1 */
 
@@ -141,10 +115,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-    // Continuous receiving
-    HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&rx_char, sizeof(rx_char));
-
+    HAL_UART_Transmit(&UART_USB, (uint8_t *)"H7 TESTBENCH MASTER\r\n", sizeof(char) * strlen("H7 TESTBENCH MASTER\r\n"), 100);
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -238,19 +210,6 @@ void PeriphCommonClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  // TODO: change into \n because minicom attach only \r (CR config)
-  gui_cmd_handler.cmd_received[gui_cmd_handler.char_index] = rx_char;
-  gui_cmd_handler.char_index++;
-  if (strcmp(&rx_char, "\n") == 0)
-  {
-    HAL_UART_Transmit(&UART_USB, (uint8_t *)&gui_cmd_handler.cmd_received, sizeof(gui_cmd_handler.cmd_received), 100);
-    gui_cmd_handler.char_index = 0;
-    memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
-  }
-}
 
 /* USER CODE END 4 */
 
