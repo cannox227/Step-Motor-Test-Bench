@@ -115,6 +115,12 @@ with dpg.file_dialog(directory_selector=False, show=False, callback=manage_file,
 with dpg.file_dialog(directory_selector=False, show=False, callback=create_file, tag="file_dialog_c", height=50):
     dpg.add_file_extension(".json")
 
+# Connection error dialog
+with dpg.window(label="Connection error", tag="connection_error_dialog", pos=(300, 300), show=False):
+    dpg.add_text("Serial connection error", tag="Connection error")
+    dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
+        item="connection_error_dialog"))
+
 
 def main():
 
@@ -138,6 +144,11 @@ def main():
                      tag="connection_state_text_field")
         dpg.add_button(label="Send hello",
                        callback=lambda: send_hello(msc_handler))
+        with dpg.group() as cmd_input_section:
+            dpg.add_text("Command input")
+            dpg.add_input_text(tag="command_input")
+            dpg.add_button(label="SEND COMMAND",
+                           callback=lambda: send_command(msc_handler))
 
     with dpg.window(label="Motor settings", tag="Motor settings"):
 
@@ -236,13 +247,30 @@ def update_device_list(msc):
 
 
 def connect_to_device(msc):
-    if msc.connect_to_device(dpg.get_value("device_list")):
-        dpg.set_value("connection_state_text_field",
-                      "Connection state: CONNECTED")
+    try:
+        if msc.connect_to_device(dpg.get_value("device_list")):
+            dpg.set_value("connection_state_text_field",
+                          "Connection state: CONNECTED")
+    except:
+        dpg.show_item("connection_error_dialog")
 
 
 def send_hello(msc):
-    msc.send_hello(dpg.get_value("device_list"))
+    try:
+        msc.send_hello(dpg.get_value("device_list"))
+    except Exception as e:
+        dpg.show_item("connection_error_dialog")
+        print(e)
+
+
+def send_command(msc):
+    try:
+        if dpg.get_value("command_input") != None or dpg.get_value("command_input") != "":
+            msc.send_cmd(dpg.get_value("device_list"),
+                         dpg.get_value("command_input"))
+    except Exception as e:
+        dpg.show_item("connection_error_dialog")
+        print(e)
 
 
 if __name__ == "__main__":
