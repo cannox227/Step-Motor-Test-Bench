@@ -32,3 +32,10 @@ class Micro_serial_handler():
                 ("HELLO FROM DEAR PY GUI \r\n").encode('utf-8'))
         else:
             print("ERROR: Device not connected!")
+
+    def send_cmd(self, device_name, cmd):
+        if self.serial_socket is not None or self.serial_socket.is_open:
+            self.serial_socket.write(
+                (cmd+"\r\n").encode('utf-8'))
+        else:
+            print("ERROR: Device not connected!")
