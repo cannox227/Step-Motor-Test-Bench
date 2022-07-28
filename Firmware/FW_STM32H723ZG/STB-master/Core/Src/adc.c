@@ -282,10 +282,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     /**ADC1 GPIO Configuration
     PA5     ------> ADC1_INP19
     */
-    GPIO_InitStruct.Pin = VOLTAGE_STEPPER_ADC_Pin;
+    GPIO_InitStruct.Pin = CURRENT_ADC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(VOLTAGE_STEPPER_ADC_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(CURRENT_ADC_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC1 interrupt Init */
     HAL_NVIC_SetPriority(ADC_IRQn, 0, 0);
@@ -309,10 +309,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     /**ADC2 GPIO Configuration
     PA3     ------> ADC2_INP15
     */
-    GPIO_InitStruct.Pin = CURRENT_ADC_Pin;
+    GPIO_InitStruct.Pin = TORQUE_ADC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(CURRENT_ADC_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(TORQUE_ADC_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC2 interrupt Init */
     HAL_NVIC_SetPriority(ADC_IRQn, 0, 0);
@@ -361,7 +361,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     /**ADC1 GPIO Configuration
     PA5     ------> ADC1_INP19
     */
-    HAL_GPIO_DeInit(VOLTAGE_STEPPER_ADC_GPIO_Port, VOLTAGE_STEPPER_ADC_Pin);
+    HAL_GPIO_DeInit(CURRENT_ADC_GPIO_Port, CURRENT_ADC_Pin);
 
     /* ADC1 interrupt Deinit */
   /* USER CODE BEGIN ADC1:ADC_IRQn disable */
@@ -390,7 +390,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     /**ADC2 GPIO Configuration
     PA3     ------> ADC2_INP15
     */
-    HAL_GPIO_DeInit(CURRENT_ADC_GPIO_Port, CURRENT_ADC_Pin);
+    HAL_GPIO_DeInit(TORQUE_ADC_GPIO_Port, TORQUE_ADC_Pin);
 
     /* ADC2 interrupt Deinit */
   /* USER CODE BEGIN ADC2:ADC_IRQn disable */

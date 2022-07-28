@@ -58,28 +58,26 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LED1_Pin GPIO_PIN_4
-#define LED1_GPIO_Port GPIOE
-#define LED2_Pin GPIO_PIN_5
-#define LED2_GPIO_Port GPIOE
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define LED1_Pin GPIO_PIN_7
+#define LED1_GPIO_Port GPIOF
+#define LED2_Pin GPIO_PIN_9
+#define LED2_GPIO_Port GPIOF
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
 #define RMII_MDC_Pin GPIO_PIN_1
 #define RMII_MDC_GPIO_Port GPIOC
-#define TORQUE_ADC_Pin GPIO_PIN_3
-#define TORQUE_ADC_GPIO_Port GPIOC
+#define VOLTAGE_STEPPER_ADC_Pin GPIO_PIN_3
+#define VOLTAGE_STEPPER_ADC_GPIO_Port GPIOC
 #define RMII_REF_CLK_Pin GPIO_PIN_1
 #define RMII_REF_CLK_GPIO_Port GPIOA
 #define RMII_MDIO_Pin GPIO_PIN_2
 #define RMII_MDIO_GPIO_Port GPIOA
-#define CURRENT_ADC_Pin GPIO_PIN_3
+#define TORQUE_ADC_Pin GPIO_PIN_3
+#define TORQUE_ADC_GPIO_Port GPIOA
+#define CURRENT_ADC_Pin GPIO_PIN_5
 #define CURRENT_ADC_GPIO_Port GPIOA
-#define VOLTAGE_STEPPER_ADC_Pin GPIO_PIN_5
-#define VOLTAGE_STEPPER_ADC_GPIO_Port GPIOA
-#define PWM_BRAKE_Pin GPIO_PIN_6
-#define PWM_BRAKE_GPIO_Port GPIOA
 #define RMII_CRS_DV_Pin GPIO_PIN_7
 #define RMII_CRS_DV_GPIO_Port GPIOA
 #define RMII_RXD0_Pin GPIO_PIN_4
@@ -98,6 +96,10 @@ void Error_Handler(void);
 #define STLK_VCP_TX_GPIO_Port GPIOD
 #define USB_FS_OVCR_Pin GPIO_PIN_7
 #define USB_FS_OVCR_GPIO_Port GPIOG
+#define PWM_BRAKE_Pin GPIO_PIN_8
+#define PWM_BRAKE_GPIO_Port GPIOC
+#define DISABLE_STEPPER_SUPPLY_Pin GPIO_PIN_9
+#define DISABLE_STEPPER_SUPPLY_GPIO_Port GPIOC
 #define USB_FS_VBUS_Pin GPIO_PIN_9
 #define USB_FS_VBUS_GPIO_Port GPIOA
 #define USB_FS_ID_Pin GPIO_PIN_10

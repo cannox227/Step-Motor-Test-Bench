@@ -25,11 +25,11 @@
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
-#include "pwm.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "pwm.h"
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,6 +39,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define CMD_PAYLOAD_LENGHT 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,6 +51,29 @@
 
 /* USER CODE BEGIN PV */
 
+typedef struct
+{
+  bool is_word_complete;
+  char cmd_received[CMD_PAYLOAD_LENGHT];
+  char last_char_received;
+  uint8_t char_index;
+} uart_rx_handler;
+
+typedef enum
+{
+  INIT = 0U,
+  WAITING_FOR_CMD,
+  CMD_RECEIVED,
+  SEND_START_MOTOR_CMD,
+  GET_MOTOR_ACK_ON_START,
+  MOTOR_IS_RUNNING
+      SENSORS_READING,
+  STOP_MOTOR,
+  GET_MOTOR_ACK_ON_STOP
+} master_states;
+
+char rx_char;
+uart_rx_handler gui_cmd_handler;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,12 +89,15 @@ void PeriphCommonClock_Config(void);
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  gui_cmd_handler.is_word_complete = false;
+  gui_cmd_handler.char_index = 0;
+  memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
 
   /* USER CODE END 1 */
 
@@ -86,7 +113,7 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
-  /* Configure the peripherals common clocks */
+/* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
@@ -115,8 +142,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    HAL_UART_Transmit(&UART_USB, (uint8_t *)"H7 TESTBENCH MASTER\r\n", sizeof(char) * strlen("H7 TESTBENCH MASTER\r\n"), 100);
-    HAL_Delay(1000);
+
+    // Continuous receiving
+    HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&rx_char, sizeof(rx_char));
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -125,31 +154,29 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Supply configuration update enable
-   */
+  */
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
   /** Configure the main internal regulator output voltage
-   */
+  */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
-  while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY))
-  {
-  }
+  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
   /** Macro to configure the PLL clock source
-   */
+  */
   __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
   /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48 | RCC_OSCILLATORTYPE_HSE;
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -167,8 +194,10 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1 | RCC_CLOCKTYPE_D1PCLK1;
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
@@ -184,15 +213,15 @@ void SystemClock_Config(void)
 }
 
 /**
- * @brief Peripherals Common Clock Configuration
- * @retval None
- */
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
 void PeriphCommonClock_Config(void)
 {
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Initializes the peripherals clock
-   */
+  */
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
   PeriphClkInitStruct.PLL2.PLL2M = 1;
   PeriphClkInitStruct.PLL2.PLL2N = 24;
@@ -211,12 +240,25 @@ void PeriphCommonClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  // TODO: change into \n because minicom attach only \r (CR config)
+  gui_cmd_handler.cmd_received[gui_cmd_handler.char_index] = rx_char;
+  gui_cmd_handler.char_index++;
+  if (strcmp(&rx_char, "\n") == 0)
+  {
+    HAL_UART_Transmit(&UART_USB, (uint8_t *)&gui_cmd_handler.cmd_received, sizeof(gui_cmd_handler.cmd_received), 100);
+    gui_cmd_handler.char_index = 0;
+    memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
+  }
+}
+
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -228,14 +270,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
