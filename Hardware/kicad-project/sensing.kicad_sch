@@ -353,6 +353,7 @@
     )
   )
 
+
   (junction (at 246.38 36.83) (diameter 0) (color 0 0 0 0)
     (uuid 0169dc85-c16c-439b-9927-60cec8c1aded)
   )
@@ -963,10 +964,6 @@
   (hierarchical_label "STEPPER+" (shape input) (at 65.532 54.102 0)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid cdc27ed3-36ca-4085-9b27-e5695c9003f6)
-  )
-  (hierarchical_label "TORQUE_BUFF_ADC" (shape input) (at 165.1 62.865 0)
-    (effects (font (size 1.27 1.27)) (justify left))
-    (uuid d0c97573-e3a5-4387-b767-c4e13a3e379f)
   )
 
   (symbol (lib_id "Device:R") (at 142.875 137.16 0) (unit 1)

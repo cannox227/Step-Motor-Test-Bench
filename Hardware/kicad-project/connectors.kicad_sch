@@ -1575,6 +1575,7 @@
     )
   )
 
+
   (junction (at 156.845 67.31) (diameter 0) (color 0 0 0 0)
     (uuid 0ad44a3b-48cc-440f-a67f-0541436eadd5)
   )
@@ -1908,7 +1909,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 74a55b6e-5f09-4aff-abff-ff3dcf5546c9)
   )
-  (label "DISABLE_STEPPER_SUPPLY" (at 123.825 67.31 0)
+  (label "ENABLE_STEPPER_SUPPLY" (at 123.825 67.31 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 84937707-c8fa-458e-9f88-0b0663e73885)
   )
@@ -1940,7 +1941,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid f0c223a7-e30e-4c21-b73f-ccbd7b735327)
   )
-  (label "DISABLE_STEPPER_SUPPLY" (at 74.93 41.91 180)
+  (label "ENABLE_STEPPER_SUPPLY" (at 74.93 41.91 180)
     (effects (font (size 1.27 1.27)) (justify right bottom))
     (uuid f61234bb-8baf-49f4-b2d0-249f13d98aaa)
   )
