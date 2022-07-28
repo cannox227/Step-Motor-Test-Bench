@@ -1,3 +1,4 @@
+from email.policy import default
 from readline import append_history_file
 from traceback import print_tb
 import dearpygui.dearpygui as dpg
@@ -71,6 +72,15 @@ def create_file(sender, app_data):
 
 def devices_selector_callback(sender, app_data):
     print(app_data)
+
+
+def show_settings(sender, app_data):
+    if app_data == "Voltage mode":
+        dpg.show_item("motor_settings_voltage_mode")
+        dpg.hide_item("motor_settings_current_mode")
+    elif app_data == "Current mode":
+        dpg.show_item("motor_settings_current_mode")
+        dpg.hide_item("motor_settings_voltage_mode")
 
 
 # Graphs
@@ -170,20 +180,58 @@ def main():
         dpg.add_text(
             f"Motor configuration file: {config.get_value('config_name')}")
         with dpg.group() as motor_settings:
-            dpg.add_slider_float(tag="hold", label="Hold DT [%]", default_value=config.get_value(
-                'hold_dt'), max_value=99.6, width=100, format="%.2f")
-            dpg.add_slider_float(tag="run", label="Run DT [%]", default_value=config.get_value(
-                'run_dt'), max_value=99.6, width=100, format="%.2f")
-            dpg.add_slider_float(tag="acc", label="Acceleration", default_value=config.get_value(
-                'acc'), width=100, max_value=99.6, format="%.2f")
-            dpg.add_slider_float(tag="dec", label="Deceleration", default_value=config.get_value(
-                'dec'), max_value=99.6, width=100, format="%.2f")
 
+            dpg.add_text("Common settings")
+            dpg.add_input_float(
+                tag="max_speed", label="Max speed [step/s] (min: 15.25, max: 15610)", default_value=15.25, max_value=15610, min_value=15.25)
+            dpg.add_input_float(
+                tag="min_speed", label="Mix speed [step/s] (min: 0, max: 976.3)", default_value=0, max_value=976.3, min_value=0)
+            dpg.add_input_float(
+                tag="full_step_speed", label="Full step speed [step/s] (min: 7.63, max: 15625)", default_value=7.63, max_value=15625, min_value=7.63)
+            dpg.add_input_float(tag="overcurrent_threshold",
+                                label="Overcurrent threshold", default_value=281.25)
+            dpg.add_combo(tag="step_mode", label="Step mode",
+                          items=["A", "B", "C"])
+            dpg.add_separator()
             dpg.add_text(label="")
-            dpg.add_radio_button(tag="step", horizontal=True, items=[
-                                 "Half Step", "Full Step"], default_value=config.get_value('step'))
-            dpg.add_radio_button(tag="rotation", horizontal=True, items=[
-                                 "Clockwise", "Anti-Clockwise"], default_value=config.get_value('rotation'))
+            dpg.add_radio_button(tag="working_mode", horizontal=True, items=[
+                                 "Voltage mode", "Current mode"], default_value="Voltage mode", callback=show_settings)
+
+            with dpg.group(xoffset=10, tag="motor_settings_current_mode", show=False) as motor_settings_current_mode:
+                dpg.add_input_float(tag="hold_perc", label="Hold DT [%]", default_value=config.get_value(
+                    'hold_dt'), max_value=99.6, width=100, format="%.2f")
+                dpg.add_input_float(tag="run_perc", label="Run DT [%]", default_value=config.get_value(
+                    'run_dt'), max_value=99.6, width=100, format="%.2f")
+                dpg.add_input_float(tag="acc_perc", label="Acceleration", default_value=config.get_value(
+                    'acc'), width=100, max_value=99.6, format="%.2f")
+                dpg.add_input_float(tag="dec_perc", label="Deceleration", default_value=config.get_value(
+                    'dec'), max_value=99.6, width=100, format="%.2f")
+
+            with dpg.group(xoffset=10, tag="motor_settings_voltage_mode") as motor_settings_voltage_mode:
+                dpg.add_input_float(
+                    tag="hold_torque_mv", label="Hold torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                dpg.add_input_float(
+                    tag="running_torque_mv", label="Running torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                dpg.add_input_float(
+                    tag="acceleration_torque_mv", label="Acceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                dpg.add_input_float(
+                    tag="deceleration_torque_mv", label="Deceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                dpg.add_input_float(
+                    tag="min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", width=100)
+                dpg.add_input_float(
+                    tag="min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", width=100)
+
+                #     dpg.add_slider_float(tag="hold", label="Hold Torque [mV]", default_value=config.get_value(
+                #         'hold_dt'), max_value=99.6, width=100, format="%.2f")
+                #     dpg.add_slider_float(tag="run", label="Run DT [%]", default_value=config.get_value(
+                #         'run_dt'), max_value=99.6, width=100, format="%.2f")
+                #     dpg.add_slider_float(tag="acc", label="Acceleration", default_value=config.get_value(
+                #         'acc'), width=100, max_value=99.6, format="%.2f")
+                #     dpg.add_slider_float(tag="dec", label="Deceleration", default_value=config.get_value(
+                #         'dec'), max_value=99.6, width=100, format="%.2f")
+
+                # dpg.add_radio_button(tag="rotation", horizontal=True, items=[
+                #                      "Clockwise", "Anti-Clockwise"], default_value=config.get_value('rotation'))
 
             dpg.add_text(label="")
             dpg.add_separator()
