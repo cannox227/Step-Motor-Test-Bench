@@ -4,70 +4,13 @@ from traceback import print_tb
 import dearpygui.dearpygui as dpg
 from matplotlib.style import available
 import plot as plot
-import config
+import motor_config
 import micro_serial_handler
-
-# Get value of a numeric slider
-
-
-def get_slider_value(sender):
-    return str(round(dpg.get_value(sender), 2))
-
-# Get radio value
+import sys
+import os
 
 
-def get_radio_value(sender):
-    return str(dpg.get_value(sender))
-
-# Callback wich updates and stores the config file
-
-
-def save_callback(sender, app_data, user_data):
-
-    hold = float(get_slider_value('hold'))
-    run = float(get_slider_value('run'))
-    acc = float(get_slider_value('acc'))
-    dec = float(get_slider_value('dec'))
-    step = get_radio_value('step')
-    rotation = get_radio_value('rotation')
-
-    config.set_value('hold_dt', hold)
-    config.set_value('run_dt', run)
-    config.set_value('acc', acc)
-    config.set_value('dec', dec)
-    config.set_value('step', step)
-    config.set_value('rotation', rotation)
-
-    # print(f"Hold DT is: {hold}")
-    # print(f"Run DT is: {run}")
-    # print(f"Acceleration is: {acc}")
-    # print(f"Deceleration is: {dec}")
-
-    config.write_config(f"configs/{config.get_value('config_name')}.json")
-
-
-def exit_callback():
-    exit(0)
-
-
-def manage_file(sender, app_data):
-    config.read_config(app_data['file_path_name'])
-    dpg.set_value("hold", config.get_value('hold_dt'))
-    dpg.set_value("run", config.get_value('run_dt'))
-    dpg.set_value("acc", config.get_value('acc'))
-    dpg.set_value("dec", config.get_value('dec'))
-    dpg.set_value("step", config.get_value('step'))
-    dpg.set_value("rotation", config.get_value('rotation'))
-
-
-def create_file(sender, app_data):
-    config.init_config(app_data['file_name'].replace('.json', ''))
-    # print(app_data['file_name'])
-    config.write_config(app_data['file_path_name'])
-    dpg.set_value("hold", config.get_value('hold_dt'))
-    dpg.set_value("run", config.get_value('run_dt'))
-    dpg.set_value("acc", config.get_value('acc'))
-    dpg.set_value("dec", config.get_value('dec'))
+light_blue = (0, 153, 255)
 
 
 def devices_selector_callback(sender, app_data):
@@ -117,13 +60,6 @@ with dpg.window(label="Motor Current plot", tag="Motor Current plot", pos=(300, 
         dpg.add_line_series(plot.get_xvals(), plot.get_yvals(
         ), tag="I vals", label="I-w", parent="y-axis-I")
 
-# File manager read
-with dpg.file_dialog(directory_selector=False, show=False, callback=manage_file, tag="file_dialog_r", height=50):
-    dpg.add_file_extension(".json")
-
-# File manager write
-with dpg.file_dialog(directory_selector=False, show=False, callback=create_file, tag="file_dialog_c", height=50):
-    dpg.add_file_extension(".json")
 
 # Connection error dialog
 with dpg.window(label="Connection error", tag="connection_error_dialog", pos=(300, 300), show=False):
@@ -134,14 +70,22 @@ with dpg.window(label="Connection error", tag="connection_error_dialog", pos=(30
 
 def main():
 
-    # import JSON config file
-    config.read_config("configs/motor_params.json")
-
     # import classes
     msc_handler = micro_serial_handler.Micro_serial_handler()
-    # msc_handler.update_available_devices()
-    # print(f"!!{msc_handler.get_available_devices_by_name()}")
+    motor_configuration = motor_config.Motor_Config()
 
+    # import JSON config file
+    motor_configuration.read_config_file("configs/config000.json")
+
+    # File manager read
+    with dpg.file_dialog(directory_selector=False, show=False, user_data=motor_configuration, callback=manage_file, tag="file_dialog_r", height=50):
+        dpg.add_file_extension(".json")
+
+    # File manager write
+    with dpg.file_dialog(directory_selector=False, show=False, user_data=motor_configuration, callback=create_file, tag="file_dialog_c", height=50):
+        dpg.add_file_extension(".json")
+
+    # Serial window
     with dpg.window(label="Serial interface", tag="Serial interface", pos=(400, 0), width=300):
         dpg.add_button(label="Refresh device list",
                        callback=lambda: update_device_list(msc_handler))
@@ -160,6 +104,7 @@ def main():
             dpg.add_button(label="SEND COMMAND",
                            callback=lambda: send_command(msc_handler))
 
+    # Motor settings window
     with dpg.window(label="Motor settings", tag="Motor settings"):
 
         with dpg.menu_bar():
@@ -174,64 +119,67 @@ def main():
                 dpg.add_menu_item(label="Paste")
                 dpg.add_menu_item(label="Cut")
 
-        dpg.add_text("Motor settings")
-        dpg.add_text(label="")
-
         dpg.add_text(
-            f"Motor configuration file: {config.get_value('config_name')}")
+            f"Motor configuration file used: {motor_configuration.get_value('config_name')}", tag="current_config_open")
         with dpg.group() as motor_settings:
 
-            dpg.add_text("Common settings")
+            dpg.add_text("Common settings", color=light_blue)
             dpg.add_input_float(
-                tag="max_speed", label="Max speed [step/s] (min: 15.25, max: 15610)", default_value=15.25, max_value=15610, min_value=15.25)
+                tag="max_speed", label="Max speed [step/s] (min: 15.25, max: 15610)", default_value=15.25, max_value=15610, min_value=15.25, min_clamped=True, max_clamped=True, width=100)
             dpg.add_input_float(
-                tag="min_speed", label="Mix speed [step/s] (min: 0, max: 976.3)", default_value=0, max_value=976.3, min_value=0)
+                tag="min_speed", label="Min speed [step/s] (min: 0, max: 976.3)", default_value=0, max_value=976.3, min_value=0, min_clamped=True, max_clamped=True, width=100)
             dpg.add_input_float(
-                tag="full_step_speed", label="Full step speed [step/s] (min: 7.63, max: 15625)", default_value=7.63, max_value=15625, min_value=7.63)
+                tag="full_step_speed", label="Full step speed [step/s] (min: 7.63, max: 15625)", default_value=7.63, max_value=15625, min_value=7.63, min_clamped=True, max_clamped=True, width=100)
+            # check the enum
             dpg.add_input_float(tag="overcurrent_threshold",
-                                label="Overcurrent threshold", default_value=281.25)
+                                label="Overcurrent threshold", default_value=281.25,  min_clamped=True, max_clamped=True, width=100)
             dpg.add_combo(tag="step_mode", label="Step mode",
-                          items=["A", "B", "C"])
+                          items=["A", "B", "C"], width=100)
             dpg.add_separator()
-            dpg.add_text(label="")
+            dpg.add_text("Operating mode", color=light_blue)
             dpg.add_radio_button(tag="working_mode", horizontal=True, items=[
                                  "Voltage mode", "Current mode"], default_value="Voltage mode", callback=show_settings)
 
+            # Motor settings in current mode
             with dpg.group(xoffset=10, tag="motor_settings_current_mode", show=False) as motor_settings_current_mode:
-                dpg.add_input_float(tag="hold_perc", label="Hold DT [%]", default_value=config.get_value(
-                    'hold_dt'), max_value=99.6, width=100, format="%.2f")
-                dpg.add_input_float(tag="run_perc", label="Run DT [%]", default_value=config.get_value(
-                    'run_dt'), max_value=99.6, width=100, format="%.2f")
-                dpg.add_input_float(tag="acc_perc", label="Acceleration", default_value=config.get_value(
-                    'acc'), width=100, max_value=99.6, format="%.2f")
-                dpg.add_input_float(tag="dec_perc", label="Deceleration", default_value=config.get_value(
-                    'dec'), max_value=99.6, width=100, format="%.2f")
+                dpg.add_input_float(
+                    tag="current_hold_torque_mv", label="Hold torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                dpg.add_input_float(
+                    tag="current_running_torque_mv", label="Running torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                dpg.add_input_float(
+                    tag="current_acceleration_torque_mv", label="Acceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                dpg.add_input_float(
+                    tag="current_deceleration_torque_mv", label="Deceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
 
+                dpg.add_input_float(
+                    tag="current_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                dpg.add_input_float(
+                    tag="current_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+
+            # Motor settings in voltage mode
             with dpg.group(xoffset=10, tag="motor_settings_voltage_mode") as motor_settings_voltage_mode:
+                dpg.add_input_float(tag="voltage_hold_perc", label="Hold DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                    max_value=99.6, min_clamped=True, max_clamped=True, width=100, format="%.2f")
+                dpg.add_input_float(tag="voltage_run_perc", label="Run DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                    max_value=99.6, min_clamped=True, max_clamped=True, width=100, format="%.2f")
+                dpg.add_input_float(tag="voltage_acc_perc", label="Acceleration DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                    width=100, max_value=99.6,  min_clamped=True, max_clamped=True, format="%.2f")
+                dpg.add_input_float(tag="voltage_dec_perc", label="Deceleration DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                    max_value=99.6, width=100, min_clamped=True, max_clamped=True, format="%.2f")
                 dpg.add_input_float(
-                    tag="hold_torque_mv", label="Hold torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                    tag="voltage_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
                 dpg.add_input_float(
-                    tag="running_torque_mv", label="Running torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                    tag="voltage_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
                 dpg.add_input_float(
-                    tag="acceleration_torque_mv", label="Acceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                    tag="bemf_start_slope", label="BEMF start slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
                 dpg.add_input_float(
-                    tag="deceleration_torque_mv", label="Deceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", width=100)
+                    tag="bemf_final_acc_slope", label="BEMF final acc slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
                 dpg.add_input_float(
-                    tag="min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", width=100)
+                    tag="bemf_final_dec_slope", label="BEMF final dec slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
                 dpg.add_input_float(
-                    tag="min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", width=100)
-
-                #     dpg.add_slider_float(tag="hold", label="Hold Torque [mV]", default_value=config.get_value(
-                #         'hold_dt'), max_value=99.6, width=100, format="%.2f")
-                #     dpg.add_slider_float(tag="run", label="Run DT [%]", default_value=config.get_value(
-                #         'run_dt'), max_value=99.6, width=100, format="%.2f")
-                #     dpg.add_slider_float(tag="acc", label="Acceleration", default_value=config.get_value(
-                #         'acc'), width=100, max_value=99.6, format="%.2f")
-                #     dpg.add_slider_float(tag="dec", label="Deceleration", default_value=config.get_value(
-                #         'dec'), max_value=99.6, width=100, format="%.2f")
-
-                # dpg.add_radio_button(tag="rotation", horizontal=True, items=[
-                #                      "Clockwise", "Anti-Clockwise"], default_value=config.get_value('rotation'))
+                    tag="thermal_compensation", label="Thermal compensation (min: 1, max: 1.46875)", default_value=1, max_value=1.46875, min_value=1, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                dpg.add_input_float(
+                    tag="stall_threshold", label="Stall threshold [mV] (min: 31.25, max: 1000)", default_value=31.25, max_value=1000, min_value=31.25, format="%.2f", min_clamped=True, max_clamped=True, width=100)
 
             dpg.add_text(label="")
             dpg.add_separator()
@@ -249,12 +197,12 @@ def main():
 
             with dpg.group(horizontal=True) as bottom_buttons:
                 dpg.add_button(label="Save with override",
-                               callback=save_callback)
+                               callback=save_callback, user_data=motor_configuration)
                 dpg.add_button(label="Exit", callback=exit_callback)
 
     # Create viewport where windows will be contained
     dpg.create_viewport(
-        title='ProM Motor driver configurator', width=800, height=800)
+        title='ProM Motor driver configurator', x_pos=0, y_pos=0)
     # Fill the viewport with a specifig window using its tag
     # dpg.set_primary_window("Motor settings", True)
     # Necessary setup phase
@@ -320,9 +268,60 @@ def send_command(msc):
         dpg.show_item("connection_error_dialog")
         print(e)
 
+# Callback wich updates and stores the config file
+
+
+def save_callback(sender, app_data, user_data):
+    """
+    Callback executed when a configuration is saved
+    """
+    print("save")
+    print(user_data.get_last_filename())
+    user_data.set_value("config_name", user_data.get_last_filename())
+    for i in user_data.get_config():
+        # i: key, value = user_data.get_value(i)
+        if i != "config_name":
+            user_data.set_value(i, dpg.get_value(i))
+    user_data.write_config_file(
+        f"configs/{user_data.get_value('config_name')}.json")
+
+
+def exit_callback():
+    exit(0)
+
+
+def manage_file(sender, app_data, user_data):
+    """
+    Callback executed when a configuration is read
+    """
+
+    user_data.read_config_file(app_data['file_path_name'])
+    user_data.set_last_filename(user_data.get_value("config_name"))
+    dpg.set_value("current_config_open",
+                  f"Motor configuration file used: {user_data.get_value('config_name')}")
+
+    for i in user_data.get_config():
+        # i: key, value = user_data.get_value(i)
+        if i != "config_name":
+            dpg.set_value(i, user_data.get_value(i))
+
+
+def create_file(sender, app_data, user_data):
+    """
+    Callback executed when a configuration is created
+    """
+    user_data.init_config(app_data['file_name'].replace('.json', ''))
+    user_data.set_last_filename(app_data['file_name'])
+    dpg.set_value("current_config_open",
+                  f"Motor configuration file used: {user_data.get_value('config_name')}")
+    # TODO: set to standard values?
+
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         print(f"\nSome errors occured: {e}\r\n")
