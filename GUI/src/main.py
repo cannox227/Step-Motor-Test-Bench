@@ -311,7 +311,7 @@ def create_file(sender, app_data, user_data):
     Callback executed when a configuration is created
     """
     user_data.init_config(app_data['file_name'].replace('.json', ''))
-    user_data.set_last_filename(app_data['file_name'])
+    user_data.set_last_filename(app_data['file_name'].replace('.json', ''))
     dpg.set_value("current_config_open",
                   f"Motor configuration file used: {user_data.get_value('config_name')}")
     # TODO: set to standard values?

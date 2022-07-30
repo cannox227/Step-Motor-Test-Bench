@@ -3,7 +3,7 @@
   "max_speed": 0,
   "min_speed": 0,
   "full_step_speed": 0,
-  "overcurent_threshold": 0,
+  "overcurrent_threshold": 0,
   "step_mode": "A",
   "working_mode": "Voltage mode",
   "current_hold_torque_mv": 0,
