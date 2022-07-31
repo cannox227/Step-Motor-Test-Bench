@@ -1,3 +1,4 @@
+from certifi import where
 import serial.tools.list_ports
 import io
 
@@ -19,6 +20,17 @@ class Micro_serial_handler():
 
     def get_available_devices_by_name(self):
         return list([i.device for i in self.available_devices])
+
+    def get_device_name(self, device):
+        for i in self.available_devices:
+            if i.device == device:
+                return i.description
+
+    def set_selected_device(self, device):
+        self.selected_device = device
+
+    def get_selected_device(self):
+        return self.selected_device
 
     def connect_to_device(self, device_name):
         self.selected_device = device_name

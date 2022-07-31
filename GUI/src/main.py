@@ -13,7 +13,8 @@ import os
 light_blue = (0, 153, 255)
 
 
-def devices_selector_callback(sender, app_data):
+def devices_selector_callback(sender, app_data, user_data):
+    user_data.set_selected_device(app_data)
     print(app_data)
 
 
@@ -91,7 +92,7 @@ def main():
                        callback=lambda: update_device_list(msc_handler))
         dpg.add_text("Available devices")
         dpg.add_combo(items=msc_handler.get_available_devices(),
-                      tag="device_list", callback=devices_selector_callback)
+                      tag="device_list", callback=devices_selector_callback, user_data=msc_handler)
         dpg.add_button(label="CONNECT",
                        callback=lambda: connect_to_device(msc_handler))
         dpg.add_text("Connection state: NOT CONNECTED",
@@ -246,7 +247,7 @@ def connect_to_device(msc):
     try:
         if msc.connect_to_device(dpg.get_value("device_list")):
             dpg.set_value("connection_state_text_field",
-                          "Connection state: CONNECTED")
+                          f"Connection state: CONNECTED TO {msc.get_device_name(msc.get_selected_device())}")
     except:
         dpg.show_item("connection_error_dialog")
 
