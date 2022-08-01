@@ -74,6 +74,12 @@ with dpg.window(label="Connection error", tag="connection_error_dialog", pos=(30
     dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
         item="connection_error_dialog"))
 
+# Config popup
+    with dpg.window(label="Current config", tag="current_config_dialog", pos=(300, 300), show=False):
+        dpg.add_text("", tag="current_config_text")
+        dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
+            item="current_config_dialog"))
+
 
 def main():
 
@@ -188,6 +194,8 @@ def main():
                 with dpg.group(horizontal=True) as bottom_buttons:
                     dpg.add_button(label="Save with override",
                                    callback=save_callback, user_data=motor_configuration)
+                    dpg.add_button(label="Print current config",
+                                   callback=print_current_config, user_data=motor_configuration)
                     dpg.add_button(label="Exit", callback=exit_callback)
 
             # Serial window
@@ -331,6 +339,12 @@ def save_callback(sender, app_data, user_data):
             user_data.set_value(i, dpg.get_value(i))
     user_data.write_config_file(
         f"configs/{user_data.get_value('config_name')}.json")
+
+
+def print_current_config(sender, app_data, user_data):
+    dpg.set_value("current_config_text",
+                  str(user_data.get_config()).replace(',', '\r\n').replace('{', '').replace('}', ''))
+    dpg.show_item("current_config_dialog")
 
 
 def exit_callback():
