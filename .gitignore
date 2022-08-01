@@ -130,6 +130,7 @@ dmypy.json
 
 #Mac
 **/.DS_Store
+.DS_Store
 
 #Cube IDE
 # STM32Cube copied library and project folders
