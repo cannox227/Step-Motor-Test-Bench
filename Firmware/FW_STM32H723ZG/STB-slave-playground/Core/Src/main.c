@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -99,6 +100,29 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  struct
+  {
+    union
+    {
+      float float_n0;
+      char char_n0[4];
+    } n0;
+    union
+    {
+      float float_n1;
+      char char_n1[4];
+    } n1;
+    union
+    {
+      float float_n2;
+      char char_n2[4];
+    } n2;
+    union
+    {
+      float float_n3;
+      char char_n3[4];
+    } n3;
+  } rx_numbers;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,7 +130,41 @@ int main(void)
   while (1)
   {
     HAL_UART_Receive_IT(&huart2, (uint8_t *)&rx_char, sizeof(rx_char));
+    if (gui_cmd_handler.is_word_complete)
+    {
+      int i = 0;
+      for (int index = 0; index < 16; index++)
+      {
 
+        if (i % 4 == 0)
+        {
+          i = 0;
+        }
+        if (index >= 0 && index <= 3)
+        {
+          rx_numbers.n0.char_n0[i] = gui_cmd_handler.cmd_received[index];
+          i++;
+        }
+        if (index >= 4 && index <= 7)
+        {
+          rx_numbers.n1.char_n1[i] = gui_cmd_handler.cmd_received[index];
+          i++;
+        }
+        if (index >= 8 && index <= 11)
+        {
+          rx_numbers.n2.char_n2[i] = gui_cmd_handler.cmd_received[index];
+          i++;
+        }
+        if (index >= 12 && index <= 15)
+        {
+          rx_numbers.n3.char_n3[i] = gui_cmd_handler.cmd_received[index];
+          i++;
+        }
+      }
+      memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
+      gui_cmd_handler.is_word_complete = false;
+      int x = 4;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -169,7 +227,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   {
     HAL_UART_Transmit(&huart2, (uint8_t *)&gui_cmd_handler.cmd_received, sizeof(gui_cmd_handler.cmd_received), 100);
     gui_cmd_handler.char_index = 0;
-    memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
+    // memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
+    gui_cmd_handler.is_word_complete = true;
   }
 }
 /* USER CODE END 4 */

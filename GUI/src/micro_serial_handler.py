@@ -1,5 +1,7 @@
+from ctypes import sizeof
 import serial.tools.list_ports
 import io
+from struct import *
 
 
 class Micro_serial_handler():
@@ -39,7 +41,7 @@ class Micro_serial_handler():
         return list([i.device for i in self.available_devices])
 
     def get_device_name(self, device):
-        """Given a device name it returnes its descriptor attribute 
+        """Given a device name it returnes its descriptor attribute
         based on available devices
 
         Args:
@@ -135,3 +137,22 @@ class Micro_serial_handler():
             self.serial_slave_socket.write((cmd+"\r\n").encode('utf-8'))
         else:
             print("ERROR: Device not connected!")
+
+    def serialize_payload(self, payload, device_type):
+        packet = bytearray()
+        packet.extend(pack("<"+("f"*len(payload)), *payload))
+        print(packet)
+        if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
+            self.serial_master_socket.write(packet)
+            self.serial_master_socket.write("\n".encode('utf-8'))
+        elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
+            self.serial_slave_socket.write(packet)
+            self.serial_slave_socket.write("\n".encode('utf-8'))
+
+        # print(packet)
+        # print(len(packet))
+        # for i in packet:
+        #     print(i)
+
+        # x = unpack(">"+("f"*len(payload)), packet)
+        # print(x)

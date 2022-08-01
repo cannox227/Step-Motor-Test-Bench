@@ -223,6 +223,8 @@ def main():
                                 tag="master_command_input", width=100)
                             dpg.add_button(label="SEND COMMAND TO MASTER",
                                            callback=lambda: send_command(msc_handler, "master"))
+                            dpg.add_button(label="SEND STRUCT TO MASTER",
+                                           callback=lambda: send_struct(msc_handler, "master"))
                     with dpg.group(horizontal=False):
                         # Slave selector
                         dpg.add_text("Available devices to be Slave")
@@ -307,6 +309,11 @@ def send_hello(msc, device_type):
     except Exception as e:
         dpg.show_item("connection_error_dialog")
         print(e)
+
+
+def send_struct(msc, device_type):
+    payload = [1.1, 2.2, 3.3, 4.4]
+    msc.serialize_payload(payload, device_type)
 
 
 def send_command(msc, device_type):
