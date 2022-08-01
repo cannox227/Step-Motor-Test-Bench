@@ -9,13 +9,19 @@ import micro_serial_handler
 import sys
 import os
 
-
+# Global var
 light_blue = (0, 153, 255)
+motor_settings_win_pos = (400, 0)
+serial_win_pos = (650, 0)
 
 
 def devices_selector_callback(sender, app_data, user_data):
-    user_data.set_selected_device(app_data)
-    print(app_data)
+    if sender == "master_device_list":
+        user_data.set_selected_device(app_data, "master")
+        #print(f'Selected {user_data.get_selected_device("master")}')
+    elif sender == "slave_device_list":
+        user_data.set_selected_device(app_data, "slave")
+        #print(f'Selected {user_data.get_selected_device("slave")}')
 
 
 def show_settings(sender, app_data):
@@ -86,25 +92,6 @@ def main():
     with dpg.file_dialog(directory_selector=False, show=False, user_data=motor_configuration, callback=create_file, tag="file_dialog_c", height=50):
         dpg.add_file_extension(".json")
 
-    # Serial window
-    with dpg.window(label="Serial interface", tag="Serial interface", pos=(400, 0), width=300):
-        dpg.add_button(label="Refresh device list",
-                       callback=lambda: update_device_list(msc_handler))
-        dpg.add_text("Available devices")
-        dpg.add_combo(items=msc_handler.get_available_devices(),
-                      tag="device_list", callback=devices_selector_callback, user_data=msc_handler)
-        dpg.add_button(label="CONNECT",
-                       callback=lambda: connect_to_device(msc_handler))
-        dpg.add_text("Connection state: NOT CONNECTED",
-                     tag="connection_state_text_field")
-        dpg.add_button(label="Send hello",
-                       callback=lambda: send_hello(msc_handler))
-        with dpg.group() as cmd_input_section:
-            dpg.add_text("Command input")
-            dpg.add_input_text(tag="command_input")
-            dpg.add_button(label="SEND COMMAND",
-                           callback=lambda: send_command(msc_handler))
-
     # Motor settings window
     with dpg.window(label="Motor settings", tag="Motor settings"):
 
@@ -122,85 +109,129 @@ def main():
 
         dpg.add_text(
             f"Motor configuration file used: {motor_configuration.get_value('config_name')}", tag="current_config_open")
-        with dpg.group() as motor_settings:
 
-            dpg.add_text("Common settings", color=light_blue)
-            dpg.add_input_float(
-                tag="max_speed", label="Max speed [step/s] (min: 15.25, max: 15610)", default_value=15.25, max_value=15610, min_value=15.25, min_clamped=True, max_clamped=True, width=100)
-            dpg.add_input_float(
-                tag="min_speed", label="Min speed [step/s] (min: 0, max: 976.3)", default_value=0, max_value=976.3, min_value=0, min_clamped=True, max_clamped=True, width=100)
-            dpg.add_input_float(
-                tag="full_step_speed", label="Full step speed [step/s] (min: 7.63, max: 15625)", default_value=7.63, max_value=15625, min_value=7.63, min_clamped=True, max_clamped=True, width=100)
-            # check the enum
-            dpg.add_input_float(tag="overcurrent_threshold",
-                                label="Overcurrent threshold", default_value=281.25,  min_clamped=True, max_clamped=True, width=100)
-            dpg.add_combo(tag="step_mode", label="Step mode",
-                          items=["A", "B", "C"], width=100)
-            dpg.add_separator()
-            dpg.add_text("Operating mode", color=light_blue)
-            dpg.add_radio_button(tag="working_mode", horizontal=True, items=[
-                                 "Voltage mode", "Current mode"], default_value="Voltage mode", callback=show_settings)
+        with dpg.group(horizontal=True) as main_panel:
 
-            # Motor settings in current mode
-            with dpg.group(xoffset=10, tag="motor_settings_current_mode", show=False) as motor_settings_current_mode:
-                dpg.add_input_float(
-                    tag="current_hold_torque_mv", label="Hold torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="current_running_torque_mv", label="Running torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="current_acceleration_torque_mv", label="Acceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="current_deceleration_torque_mv", label="Deceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+            with dpg.group(horizontal=False) as motor_settings:
 
+                dpg.add_text("Common settings", color=light_blue)
                 dpg.add_input_float(
-                    tag="current_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    tag="max_speed", label="Max speed [step/s] (min: 15.25, max: 15610)", default_value=15.25, max_value=15610, min_value=15.25, min_clamped=True, max_clamped=True, width=100)
                 dpg.add_input_float(
-                    tag="current_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    tag="min_speed", label="Min speed [step/s] (min: 0, max: 976.3)", default_value=0, max_value=976.3, min_value=0, min_clamped=True, max_clamped=True, width=100)
+                dpg.add_input_float(
+                    tag="full_step_speed", label="Full step speed [step/s] (min: 7.63, max: 15625)", default_value=7.63, max_value=15625, min_value=7.63, min_clamped=True, max_clamped=True, width=100)
+                # check the enum
+                dpg.add_input_float(tag="overcurrent_threshold",
+                                    label="Overcurrent threshold", default_value=281.25,  min_clamped=True, max_clamped=True, width=100)
+                dpg.add_combo(tag="step_mode", label="Step mode",
+                              items=["A", "B", "C"], width=100)
+                dpg.add_text("Operating mode", color=light_blue)
+                dpg.add_radio_button(tag="working_mode", horizontal=True, items=[
+                    "Voltage mode", "Current mode"], default_value="Voltage mode", callback=show_settings)
 
-            # Motor settings in voltage mode
-            with dpg.group(xoffset=10, tag="motor_settings_voltage_mode") as motor_settings_voltage_mode:
-                dpg.add_input_float(tag="voltage_hold_perc", label="Hold DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
-                                    max_value=99.6, min_clamped=True, max_clamped=True, width=100, format="%.2f")
-                dpg.add_input_float(tag="voltage_run_perc", label="Run DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
-                                    max_value=99.6, min_clamped=True, max_clamped=True, width=100, format="%.2f")
-                dpg.add_input_float(tag="voltage_acc_perc", label="Acceleration DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
-                                    width=100, max_value=99.6,  min_clamped=True, max_clamped=True, format="%.2f")
-                dpg.add_input_float(tag="voltage_dec_perc", label="Deceleration DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
-                                    max_value=99.6, width=100, min_clamped=True, max_clamped=True, format="%.2f")
-                dpg.add_input_float(
-                    tag="voltage_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="voltage_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="bemf_start_slope", label="BEMF start slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="bemf_final_acc_slope", label="BEMF final acc slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="bemf_final_dec_slope", label="BEMF final dec slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="thermal_compensation", label="Thermal compensation (min: 1, max: 1.46875)", default_value=1, max_value=1.46875, min_value=1, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-                dpg.add_input_float(
-                    tag="stall_threshold", label="Stall threshold [mV] (min: 31.25, max: 1000)", default_value=31.25, max_value=1000, min_value=31.25, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                # Motor settings in current mode
+                with dpg.group(xoffset=10, tag="motor_settings_current_mode", show=False) as motor_settings_current_mode:
+                    dpg.add_input_float(
+                        tag="current_hold_torque_mv", label="Hold torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="current_running_torque_mv", label="Running torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="current_acceleration_torque_mv", label="Acceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="current_deceleration_torque_mv", label="Deceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
 
-            dpg.add_text(label="")
-            dpg.add_separator()
-            dpg.add_text(label="")
+                    dpg.add_input_float(
+                        tag="current_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="current_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
 
-            with dpg.group(horizontal=True) as plot_params_VT:
-                dpg.add_button(label="Plot V-t", callback=lambda: plot_V())
-                dpg.add_button(label="Plot T-t", callback=lambda: plot_T())
-            with dpg.group(horizontal=True) as plot_params_PI:
-                dpg.add_button(label="Plot P-t", callback=lambda: plot_P())
-                dpg.add_button(label="Plot I-t", callback=lambda: plot_I())
+                # Motor settings in voltage mode
+                with dpg.group(xoffset=10, tag="motor_settings_voltage_mode") as motor_settings_voltage_mode:
+                    dpg.add_input_float(tag="voltage_hold_perc", label="Hold DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                        max_value=99.6, min_clamped=True, max_clamped=True, width=100, format="%.2f")
+                    dpg.add_input_float(tag="voltage_run_perc", label="Run DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                        max_value=99.6, min_clamped=True, max_clamped=True, width=100, format="%.2f")
+                    dpg.add_input_float(tag="voltage_acc_perc", label="Acceleration DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                        width=100, max_value=99.6,  min_clamped=True, max_clamped=True, format="%.2f")
+                    dpg.add_input_float(tag="voltage_dec_perc", label="Deceleration DT [%] (min: 0, max: 99.6)", default_value=0, min_value=0,
+                                        max_value=99.6, width=100, min_clamped=True, max_clamped=True, format="%.2f")
+                    dpg.add_input_float(
+                        tag="voltage_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="voltage_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="bemf_start_slope", label="BEMF start slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="bemf_final_acc_slope", label="BEMF final acc slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="bemf_final_dec_slope", label="BEMF final dec slope - BEMF compensation % [step/s] (min: 0, max: 0.4)", default_value=0, max_value=0.4, min_value=0, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="thermal_compensation", label="Thermal compensation (min: 1, max: 1.46875)", default_value=1, max_value=1.46875, min_value=1, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    dpg.add_input_float(
+                        tag="stall_threshold", label="Stall threshold [mV] (min: 31.25, max: 1000)", default_value=31.25, max_value=1000, min_value=31.25, format="%.2f", min_clamped=True, max_clamped=True, width=100)
 
-            dpg.add_text(label="")
-            dpg.add_separator()
+                dpg.add_text(label="")
+                dpg.add_separator()
+                dpg.add_text(label="")
 
-            with dpg.group(horizontal=True) as bottom_buttons:
-                dpg.add_button(label="Save with override",
-                               callback=save_callback, user_data=motor_configuration)
-                dpg.add_button(label="Exit", callback=exit_callback)
+                with dpg.group(horizontal=True) as plot_params_VT:
+                    dpg.add_button(label="Plot V-t", callback=lambda: plot_V())
+                    dpg.add_button(label="Plot T-t", callback=lambda: plot_T())
+                with dpg.group(horizontal=True) as plot_params_PI:
+                    dpg.add_button(label="Plot P-t", callback=lambda: plot_P())
+                    dpg.add_button(label="Plot I-t", callback=lambda: plot_I())
 
+                dpg.add_text(label="")
+                dpg.add_separator()
+
+                with dpg.group(horizontal=True) as bottom_buttons:
+                    dpg.add_button(label="Save with override",
+                                   callback=save_callback, user_data=motor_configuration)
+                    dpg.add_button(label="Exit", callback=exit_callback)
+
+            # Serial window
+            # with dpg.window(label="Serial interface", tag="Serial interface", pos=serial_win_pos):
+            with dpg.group() as serial_window:
+                dpg.add_text("Serial interface", color=light_blue)
+                dpg.add_button(label="Refresh device list",
+                               callback=lambda: update_device_list(msc_handler))
+
+                with dpg.group(horizontal=True) as serial_panel:
+                    with dpg.group(horizontal=False):
+                        # Master selector
+                        dpg.add_text("Available devices to be Master")
+                        dpg.add_combo(items=msc_handler.get_available_devices(),
+                                      tag="master_device_list", callback=devices_selector_callback, user_data=msc_handler, width=100)
+                        dpg.add_button(label="CONNECT TO MASTER",
+                                       callback=lambda: connect_to_device(msc_handler, "master"))
+                        dpg.add_text("Connection state: NOT CONNECTED",
+                                     tag="master_connection_state_text_field")
+                        dpg.add_button(label="Send hello to master",
+                                       callback=lambda: send_hello(msc_handler, "master"))
+                        with dpg.group() as master_cmd_input_section:
+                            dpg.add_text("Master Command input")
+                            dpg.add_input_text(
+                                tag="master_command_input", width=100)
+                            dpg.add_button(label="SEND COMMAND TO MASTER",
+                                           callback=lambda: send_command(msc_handler, "master"))
+                    with dpg.group(horizontal=False):
+                        # Slave selector
+                        dpg.add_text("Available devices to be Slave")
+                        dpg.add_combo(items=msc_handler.get_available_devices(),
+                                      tag="slave_device_list", callback=devices_selector_callback, user_data=msc_handler, width=100)
+                        dpg.add_button(label="CONNECT TO SLAVE",
+                                       callback=lambda: connect_to_device(msc_handler, "slave"))
+                        dpg.add_text("Connection state: NOT CONNECTED",
+                                     tag="slave_connection_state_text_field")
+                        dpg.add_button(label="Send hello to slave",
+                                       callback=lambda: send_hello(msc_handler, "slave"))
+                        with dpg.group() as slave_cmd_input_section:
+                            dpg.add_text("SlaveCommand input")
+                            dpg.add_input_text(
+                                tag="slave_command_input", width=100)
+                            dpg.add_button(label="SEND COMMAND TO SLAVE",
+                                           callback=lambda: send_command(msc_handler, "slave"))
     # Create viewport where windows will be contained
     dpg.create_viewport(
         title='ProM Motor driver configurator', x_pos=0, y_pos=0)
@@ -240,31 +271,46 @@ def plot_T():
 def update_device_list(msc):
     msc.update_available_devices()
     dpg.configure_item(
-        "device_list", items=msc.get_available_devices_by_name())
+        "master_device_list", items=msc.get_available_devices_by_name())
+    dpg.configure_item(
+        "slave_device_list", items=msc.get_available_devices_by_name())
 
 
-def connect_to_device(msc):
+def connect_to_device(msc, device_type):
     try:
-        if msc.connect_to_device(dpg.get_value("device_list")):
-            dpg.set_value("connection_state_text_field",
-                          f"Connection state: CONNECTED TO {msc.get_device_name(msc.get_selected_device())}")
+        if device_type == "master":
+            if msc.connect_to_device(dpg.get_value("master_device_list"), "master"):
+                dpg.set_value("master_connection_state_text_field",
+                              f'Connection state:\r\nCONNECTED TO {msc.get_device_name(dpg.get_value("master_device_list"))}')
+        elif device_type == "slave":
+            if msc.connect_to_device(dpg.get_value("slave_device_list"), "slave"):
+                dpg.set_value("slave_connection_state_text_field",
+                              f'Connection state:\r\nCONNECTED TO {msc.get_device_name(dpg.get_value("slave_device_list"))}')
     except:
         dpg.show_item("connection_error_dialog")
 
 
-def send_hello(msc):
+def send_hello(msc, device_type):
     try:
-        msc.send_hello(dpg.get_value("device_list"))
+        if device_type == "master":
+            msc.send_hello(dpg.get_value("master_device_list"), "master")
+        elif device_type == "slave":
+            msc.send_hello(dpg.get_value("slave_device_list"), "slave")
     except Exception as e:
         dpg.show_item("connection_error_dialog")
         print(e)
 
 
-def send_command(msc):
+def send_command(msc, device_type):
     try:
-        if dpg.get_value("command_input") != None or dpg.get_value("command_input") != "":
-            msc.send_cmd(dpg.get_value("device_list"),
-                         dpg.get_value("command_input"))
+        if device_type == "master":
+            if dpg.get_value("master_command_input") != None or dpg.get_value("master_command_input") != "":
+                msc.send_cmd(dpg.get_value("master_device_list"),
+                             dpg.get_value("master_command_input"), "master")
+        elif device_type == "slave":
+            if dpg.get_value("slave_command_input") != None or dpg.get_value("slave_command_input") != "":
+                msc.send_cmd(dpg.get_value("slave_device_list"),
+                             dpg.get_value("slave_command_input"), "slave")
     except Exception as e:
         dpg.show_item("connection_error_dialog")
         print(e)
