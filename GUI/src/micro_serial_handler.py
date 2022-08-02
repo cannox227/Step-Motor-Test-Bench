@@ -104,7 +104,6 @@ class Micro_serial_handler():
                 self.selected_slave_device = device_name
                 return self.serial_slave_socket.is_open
         except Exception as e:
-            print(f"Connection error: {e}")
             return False
 
     def send_hello(self, device_name, device_type):

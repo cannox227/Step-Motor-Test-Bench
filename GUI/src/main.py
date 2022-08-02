@@ -71,6 +71,7 @@ with dpg.window(label="Motor Current plot", tag="Motor Current plot", pos=(300, 
 # Connection error dialog
 with dpg.window(label="Connection error", tag="connection_error_dialog", pos=(300, 300), show=False):
     dpg.add_text("Serial connection error", tag="Connection error")
+    dpg.add_text("Error message", tag="Connection error message")
     dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
         item="connection_error_dialog"))
 
@@ -242,6 +243,15 @@ def main():
                                 tag="slave_command_input", width=100)
                             dpg.add_button(label="SEND COMMAND TO SLAVE",
                                            callback=lambda: send_command(msc_handler, "slave"))
+                            dpg.add_button(label="SEND STRUCT TO SLAVE",
+                                           callback=lambda: send_struct(msc_handler, "slave"))
+                with dpg.group() as brake_window:
+                    dpg.add_text("Brake control", color=light_blue)
+                    with dpg.group(horizontal=True) as brake_panel:
+                        dpg.add_button(
+                            label="Brake +", callback=lambda: send_brake_command(msc_handler, "brake+"))
+                        dpg.add_button(
+                            label="Brake -", callback=lambda: send_brake_command(msc_handler, "brake-"))
     # Create viewport where windows will be contained
     dpg.create_viewport(
         title='ProM Motor driver configurator', x_pos=0, y_pos=0)
@@ -278,6 +288,12 @@ def plot_T():
     dpg.show_item("Motor Torque plot")
 
 
+def update_and_show_error_popup(e):
+    dpg.set_value("Connection error message", f"Error: {e}")
+    dpg.show_item("connection_error_dialog")
+    print(e)
+
+
 def update_device_list(msc):
     msc.update_available_devices()
     dpg.configure_item(
@@ -296,8 +312,8 @@ def connect_to_device(msc, device_type):
             if msc.connect_to_device(dpg.get_value("slave_device_list"), "slave"):
                 dpg.set_value("slave_connection_state_text_field",
                               f'Connection state:\r\nCONNECTED TO {msc.get_device_name(dpg.get_value("slave_device_list"))}')
-    except:
-        dpg.show_item("connection_error_dialog")
+    except Exception as e:
+        update_and_show_error_popup(e)
 
 
 def send_hello(msc, device_type):
@@ -307,13 +323,15 @@ def send_hello(msc, device_type):
         elif device_type == "slave":
             msc.send_hello(dpg.get_value("slave_device_list"), "slave")
     except Exception as e:
-        dpg.show_item("connection_error_dialog")
-        print(e)
+        update_and_show_error_popup(e)
 
 
 def send_struct(msc, device_type):
-    payload = [1.1, 2.2, 3.3, 4.4]
-    msc.serialize_payload(payload, device_type)
+    try:
+        payload = [1.1, 2.2, 3.3, 4.4]
+        msc.serialize_payload(payload, device_type)
+    except Exception as e:
+        update_and_show_error_popup(e)
 
 
 def send_command(msc, device_type):
@@ -327,10 +345,14 @@ def send_command(msc, device_type):
                 msc.send_cmd(dpg.get_value("slave_device_list"),
                              dpg.get_value("slave_command_input"), "slave")
     except Exception as e:
-        dpg.show_item("connection_error_dialog")
-        print(e)
+        update_and_show_error_popup(e)
 
-# Callback wich updates and stores the config file
+
+def send_brake_command(msc, cmd):
+    try:
+        msc.send_cmd(dpg.get_value("master_device_list"), cmd, "master")
+    except Exception as e:
+        update_and_show_error_popup(e)
 
 
 def save_callback(sender, app_data, user_data):
