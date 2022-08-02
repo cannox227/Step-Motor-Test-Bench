@@ -36,6 +36,7 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Lib/brake/brake.c \
 Core/Lib/pwm/pwm.c \
 Core/Lib/timer_utils/timer_utils.c \
 Core/Src/adc.c \
@@ -144,6 +145,7 @@ AS_INCLUDES = \
 # C includes
 C_INCLUDES =  \
 -ICore/Inc \
+-ICore/Lib/brake \
 -ICore/Lib/pwm \
 -ICore/Lib/timer_utils \
 -IDrivers/CMSIS/Device/ST/STM32H7xx/Include \
