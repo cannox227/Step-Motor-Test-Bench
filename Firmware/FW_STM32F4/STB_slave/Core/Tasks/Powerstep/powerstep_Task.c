@@ -16,6 +16,7 @@ static task_state self_state = TASK_S_NULL;
 static TX_QUEUE *ptr_motor_queue = NULL;
 motor_cmd_msg msg;
 static volatile uint16_t gLastError;
+uint32_t position;
 
 static void BusyInterruptHandler(void);
 static void FlagInterruptHandler(void);
@@ -24,7 +25,7 @@ static void ErrorHandler(uint16_t error);
 void task_Powerstep01(uint32_t interval)
 {
 	//initMotor();
-	goForward(5000);
+	goForward(500);
 	while(1)
 	{
 		//goForward(5000);
@@ -42,7 +43,6 @@ void task_Powerstep01(uint32_t interval)
 			//Se ho wait con tempo definito esegue in continuazione
 			//tx_queue_receive(ptr_motor_queue,&msg, 100);
 			tx_queue_receive(ptr_motor_queue,&msg,TX_WAIT_FOREVER);
-
 			switch(msg.cmd)
 			{
 			case MOTOR_STOP:
@@ -69,7 +69,7 @@ void task_Powerstep01(uint32_t interval)
 			}
 			case MOTOR_GET_POS:
 			{
-				pos = (uint32_t)getPosition();
+				position = (uint32_t)getPosition();
 				//HAL_UART_Transmit(huart, pData, Size, Timeout)
 				break;
 			}
@@ -102,9 +102,9 @@ void task_Powerstep01(uint32_t interval)
 
 }
 
-void task_Powerstep01_Init()
+void task_Powerstep01_Init(TX_QUEUE *motor_queue)
 {
-	//ptr_motor_queue = queue;
+	ptr_motor_queue = motor_queue;
 	self_state = TASK_S_RUN;
 }
 

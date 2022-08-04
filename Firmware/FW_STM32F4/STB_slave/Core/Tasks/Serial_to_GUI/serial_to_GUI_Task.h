@@ -22,7 +22,7 @@
 
 
 void task_Serial_to_GUI(uint32_t interval);
-//void task_Serial_to_GUI_Init(TX_QUEUE *motor_queue, TX_QUEUE *uart_queue);
+void task_Serial_to_GUI_Init(TX_QUEUE *motor_queue); //TX_QUEUE *uart_queue,
 void task_Serial_to_GUI_Init();
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart3);
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart2);

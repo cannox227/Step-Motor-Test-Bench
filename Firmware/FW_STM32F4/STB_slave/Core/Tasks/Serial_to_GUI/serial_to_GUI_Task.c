@@ -18,7 +18,7 @@ TX_THREAD *self;
 char tx_buff[TX_BUFF_SIZE];
 char motor_cmd[MOTOR_CMD_SIZE+1];
 char cmd_params[MOTOR_CMD_PARAM_SIZE+1];
-//TODO motor cmd msg
+static TX_QUEUE *ptr_motor_queue = NULL;
 
 typedef struct{
 	bool is_cmd_received;
@@ -28,7 +28,8 @@ typedef struct{
 
 serial_to_GUI_handler STG_handler;
 
-void task_Serial_to_GUI_Init(){
+void task_Serial_to_GUI_Init(TX_QUEUE *motor_queue){
+	ptr_motor_queue = motor_queue;
 	STG_handler.is_cmd_received = false;
 	memset((uint8_t *)STG_handler.cmd_received, 0x0, sizeof(char)*RX_BUFF_SIZE);
 	STG_handler.msg.cmd = NONE;
@@ -76,7 +77,7 @@ bool parse_cmd(){
 		STG_handler.msg.cmd = MOTOR_MOVE_FW;
 		STG_handler.msg.val = atoi(cmd_params);
 	}else if((strcmp(motor_cmd, "bw")==0)){
-		STG_handler.msg.cmd = MOTOR_MOVE_FW;
+		STG_handler.msg.cmd = MOTOR_MOVE_BW;
 		STG_handler.msg.val = atoi(cmd_params);
 	}else if((strcmp(motor_cmd, "hd")==0)){
 		STG_handler.msg.cmd = MOTOR_HOLD;
@@ -96,6 +97,8 @@ bool parse_cmd(){
 	}else{
 		ret_val = true;
 	}
-
+	if(ret_val == 0){
+		tx_queue_send(ptr_motor_queue, &STG_handler.msg, TX_NO_WAIT);
+	}
 	return ret_val;
 }

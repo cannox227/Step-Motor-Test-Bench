@@ -1,13 +1,13 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    app_threadx.h
+  * @author  MCD Application Team
+  * @brief   ThreadX applicative header file
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -17,29 +17,48 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
+#ifndef __APP_THREADX_H__
+#define __APP_THREADX_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
+#include "tx_api.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usart.h"
-#include "x_nucleo_ihmxx.h"
-#include "powerstep01.h"
-#include "x_nucleo_ihm03a1_stm32f4xx.h"
+#include <inttypes.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef enum
+{
+  TASK_S_NULL   = 0U,
+  TASK_S_INIT,
+  TASK_S_RUN,
+} task_state;
 
+typedef enum
+{
+  MOTOR_STOP    = 0U,
+  MOTOR_HOLD,
+  MOTOR_MOVE_FW,
+  MOTOR_MOVE_BW,
+  MOTOR_GET_POS,
+  MOTOR_GO_TO,
+  MOTOR_GO_HOME,
+  NONE
+} motor_cmd_code;
+
+typedef struct
+{
+  motor_cmd_code    cmd;
+  uint32_t          val;
+} motor_cmd_msg;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -53,44 +72,22 @@ extern "C" {
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
-
+UINT App_ThreadX_Init(VOID *memory_ptr);
+void MX_ThreadX_Init(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
-#define B1_EXTI_IRQn EXTI15_10_IRQn
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
-#define test_Pin GPIO_PIN_8
-#define test_GPIO_Port GPIOC
-#define BSP_MOTOR_CONTROL_BOARD_STBY_RESET_Pin GPIO_PIN_9
-#define BSP_MOTOR_CONTROL_BOARD_STBY_RESET_GPIO_Port GPIOA
-#define BSP_MOTOR_CONTROL_BOARD_FLAG_Pin GPIO_PIN_10
-#define BSP_MOTOR_CONTROL_BOARD_FLAG_GPIO_Port GPIOA
-#define BSP_MOTOR_CONTROL_BOARD_FLAG_EXTI_IRQn EXTI15_10_IRQn
-#define TMS_Pin GPIO_PIN_13
-#define TMS_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
-#define BSP_MOTOR_CONTROL_BOARD_BUSY_Pin GPIO_PIN_5
-#define BSP_MOTOR_CONTROL_BOARD_BUSY_GPIO_Port GPIOB
-#define BSP_MOTOR_CONTROL_BOARD_BUSY_EXTI_IRQn EXTI9_5_IRQn
-#define BSP_MOTOR_CONTROL_BOARD_CS_Pin GPIO_PIN_6
-#define BSP_MOTOR_CONTROL_BOARD_CS_GPIO_Port GPIOB
-/* USER CODE BEGIN Private defines */
-#define UART_TO_GUI huart2
-/* USER CODE END Private defines */
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __MAIN_H */
+#endif /* __APP_THREADX_H__ */
