@@ -122,7 +122,7 @@ class Micro_serial_handler():
         else:
             print("ERROR: Device not connected!")
 
-    def send_cmd(self, device_name, cmd, device_type):
+    def send_cmd(self, cmd, device_type):
         """Send custom command to the device
 
         Args:

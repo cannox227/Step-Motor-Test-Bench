@@ -13,6 +13,7 @@ import os
 light_blue = (0, 153, 255)
 motor_settings_win_pos = (400, 0)
 serial_win_pos = (650, 0)
+MAX_MOTOR_STEP_DIGITS = 6
 
 
 def devices_selector_callback(sender, app_data, user_data):
@@ -192,6 +193,26 @@ def main():
                 dpg.add_text(label="")
                 dpg.add_separator()
 
+                with dpg.group(horizontal=False) as motor_control_buttons:
+                    dpg.add_text("Motor control", color=light_blue)
+                    dpg.add_text("Input steps")
+                    dpg.add_input_int(tag="motor_steps_to_do", default_value=0, min_value=0,
+                                      max_value=999999, width=100, max_clamped=True, min_clamped=True)
+                    dpg.add_button(label="Move forward", callback=lambda: send_generic_command(
+                        msc_handler, "slave", "fw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                    dpg.add_button(label="Move backward", callback=lambda: send_generic_command(
+                        msc_handler, "slave", "bw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                    dpg.add_button(label="Go to position", callback=lambda: send_generic_command(
+                        msc_handler, "slave", "gt+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                    dpg.add_button(label="Go home", callback=lambda: send_generic_command(
+                        msc_handler, "slave", "gh+000000"))
+                    dpg.add_button(label="Motor stop", callback=lambda: send_generic_command(
+                        msc_handler, "slave", "st+000000"))
+                    dpg.add_button(label="Motor hold", callback=lambda: send_generic_command(
+                        msc_handler, "slave", "hd+000000"))
+
+                dpg.add_separator()
+
                 with dpg.group(horizontal=True) as bottom_buttons:
                     dpg.add_button(label="Save with override",
                                    callback=save_callback, user_data=motor_configuration)
@@ -247,11 +268,17 @@ def main():
                                            callback=lambda: send_struct(msc_handler, "slave"))
                 with dpg.group() as brake_window:
                     dpg.add_text("Brake control", color=light_blue)
-                    with dpg.group(horizontal=True) as brake_panel:
-                        dpg.add_button(
-                            label="Brake +", callback=lambda: send_brake_command(msc_handler, "brake+"))
-                        dpg.add_button(
-                            label="Brake -", callback=lambda: send_brake_command(msc_handler, "brake-"))
+                    with dpg.group(horizontal=False) as brake_panel:
+                        with dpg.group(horizontal=True) as brake_subpanel_A:
+                            dpg.add_button(
+                                label="Brake +", callback=lambda: send_brake_command(msc_handler, "brake+"))
+                            dpg.add_button(
+                                label="Brake -", callback=lambda: send_brake_command(msc_handler, "brake-"))
+                        with dpg.group(horizontal=True) as brake_subpanel_B:
+                            dpg.add_button(
+                                label="Brake MAX", callback=lambda: send_brake_command(msc_handler, "brake_on_max"))
+                            dpg.add_button(
+                                label="Brake OFF", callback=lambda: send_brake_command(msc_handler, "brake_off"))
     # Create viewport where windows will be contained
     dpg.create_viewport(
         title='ProM Motor driver configurator', x_pos=0, y_pos=0)
@@ -286,6 +313,12 @@ def plot_T():
     plot.plot_T()
     dpg.set_value("T vals", [plot.get_xvals(), plot.get_yvals()])
     dpg.show_item("Motor Torque plot")
+
+
+def build_cmd(val):
+    str_val = str(val)
+    zeros = MAX_MOTOR_STEP_DIGITS - len(str_val)
+    return str(("0"*zeros)+str(val))
 
 
 def update_and_show_error_popup(e):
@@ -334,23 +367,29 @@ def send_struct(msc, device_type):
         update_and_show_error_popup(e)
 
 
+def send_generic_command(msc, device_type, command):
+    try:
+        print(command)
+        msc.send_cmd(command, device_type)
+    except Exception as e:
+        update_and_show_error_popup(e)
+
+
 def send_command(msc, device_type):
     try:
         if device_type == "master":
             if dpg.get_value("master_command_input") != None or dpg.get_value("master_command_input") != "":
-                msc.send_cmd(dpg.get_value("master_device_list"),
-                             dpg.get_value("master_command_input"), "master")
+                msc.send_cmd(dpg.get_value("master_command_input"), "master")
         elif device_type == "slave":
             if dpg.get_value("slave_command_input") != None or dpg.get_value("slave_command_input") != "":
-                msc.send_cmd(dpg.get_value("slave_device_list"),
-                             dpg.get_value("slave_command_input"), "slave")
+                msc.send_cmd(dpg.get_value("slave_command_input"), "slave")
     except Exception as e:
         update_and_show_error_popup(e)
 
 
 def send_brake_command(msc, cmd):
     try:
-        msc.send_cmd(dpg.get_value("master_device_list"), cmd, "master")
+        msc.send_cmd(cmd, "master")
     except Exception as e:
         update_and_show_error_popup(e)
 
