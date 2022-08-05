@@ -29,6 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "pwm.h"
+#include "brake.h"
 #include <stdbool.h>
 /* USER CODE END Includes */
 
@@ -132,6 +133,9 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // brake_init(&magnetic_brake);
+  // brake_set_pwm_duty_cycle(&magnetic_brake, 0.5);
+  // brake_on(&magnetic_brake);
   pwm_set_period(&TIMER_BRAKE_PWM, 0.04);
   pwm_set_duty_cicle(&TIMER_BRAKE_PWM, TIMER_BRAKE_PWM_CHANNEL, 0.5);
   pwm_start_channel(&TIMER_BRAKE_PWM, TIMER_BRAKE_PWM_CHANNEL);
@@ -142,7 +146,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
     // Continuous receiving
     HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&rx_char, sizeof(rx_char));
 

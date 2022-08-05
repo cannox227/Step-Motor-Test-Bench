@@ -38,6 +38,7 @@ BUILD_DIR = build
 C_SOURCES =  \
 Core/Lib/brake/brake.c \
 Core/Lib/pwm/pwm.c \
+Core/Lib/slave_cmd_utils/slave_cmd_utils.c \
 Core/Lib/timer_utils/timer_utils.c \
 Core/Src/adc.c \
 Core/Src/eth.c \
@@ -147,6 +148,7 @@ C_INCLUDES =  \
 -ICore/Inc \
 -ICore/Lib/brake \
 -ICore/Lib/pwm \
+-ICore/Lib/slave_cmd_utils \
 -ICore/Lib/timer_utils \
 -IDrivers/CMSIS/Device/ST/STM32H7xx/Include \
 -IDrivers/CMSIS/Include \
@@ -188,7 +190,7 @@ LIBDIR = \
 
 
 # Additional LD Flags from config file
-ADDITIONALLDFLAGS = -specs=nano.specs 
+ADDITIONALLDFLAGS = -specs=nano.specs -u_printf_float 
 
 LDFLAGS = $(MCU) $(ADDITIONALLDFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
