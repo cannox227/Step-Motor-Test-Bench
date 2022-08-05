@@ -46,7 +46,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define CMD_PAYLOAD_LENGHT       100
-#define MAX_CMD_SEND_ATTEMPTS    5
+#define MAX_CMD_SEND_ATTEMPTS    100
 #define MAX_ACK_DELAY_ALLOWED_MS 200
 /* USER CODE END PD */
 
@@ -67,6 +67,7 @@ typedef struct {
 } uart_rx_handler;
 
 uart_rx_handler gui_cmd_handler;
+uart_rx_handler slave_cmd_handler;
 
 typedef enum {
     INIT = 0U,
@@ -89,7 +90,6 @@ typedef struct {
 
 master_state_machine msm_handler;
 
-char rx_char;
 uint8_t sendings_attempts_done = 0;
 uint32_t current_tick          = 0;
 uint32_t deadline              = 0;
@@ -100,6 +100,7 @@ void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 bool parse_gui_cmd(char *cmd_rx);
+void reset_cmd(uart_rx_handler *uart_handler);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -115,12 +116,11 @@ int main(void) {
     /* USER CODE BEGIN 1 */
 
     // INIT PHASE
-    msm_handler.current_state        = INIT;
-    msm_handler.next_state           = WAITING_FOR_CMD;
-    msm_handler.go_to_next_state     = true;
-    gui_cmd_handler.is_word_complete = false;
-    gui_cmd_handler.char_index       = 0;
-    memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
+    msm_handler.current_state    = INIT;
+    msm_handler.next_state       = WAITING_FOR_CMD;
+    msm_handler.go_to_next_state = true;
+    reset_cmd(&gui_cmd_handler);
+    reset_cmd(&slave_cmd_handler);
 
     /* USER CODE END 1 */
 
@@ -157,10 +157,8 @@ int main(void) {
 
     brake_init(&magnetic_brake);
     brake_set_pwm_duty_cycle(&magnetic_brake, 0.5);
-    brake_on(&magnetic_brake);
-    // pwm_set_period(&TIMER_BRAKE_PWM, 0.04);
-    // pwm_set_duty_cicle(&TIMER_BRAKE_PWM, TIMER_BRAKE_PWM_CHANNEL, 0.5);
-    // pwm_start_channel(&TIMER_BRAKE_PWM, TIMER_BRAKE_PWM_CHANNEL);
+
+    //brake_on(&magnetic_brake);
 
     /* USER CODE END 2 */
 
@@ -176,7 +174,7 @@ int main(void) {
                 break;
             case WAITING_FOR_CMD:
                 // Continuous receiving
-                HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&rx_char, sizeof(rx_char));
+                HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, sizeof(char));
                 if (gui_cmd_handler.is_word_complete) {
                     msm_handler.next_state       = CMD_RECEIVED;
                     msm_handler.go_to_next_state = true;
@@ -192,13 +190,12 @@ int main(void) {
                     msm_handler.next_state       = WAITING_FOR_CMD;
                     msm_handler.go_to_next_state = true;
                 }
-                gui_cmd_handler.char_index = 0;
-                memset(&gui_cmd_handler.cmd_received, 0x0, sizeof(gui_cmd_handler.cmd_received));
-                gui_cmd_handler.is_word_complete = false;
+                reset_cmd(&gui_cmd_handler);
                 break;
             case SEND_START_MOTOR_CMD:
                 if (sendings_attempts_done < MAX_CMD_SEND_ATTEMPTS) {
-                    HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)MOTOR_GO_FOREVER, sizeof(MOTOR_GO_FOREVER), 100);
+                    HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)"fw+999999\r\n", sizeof("fw+999999\r\n"), 100);
+                    reset_cmd(&slave_cmd_handler);
                     sendings_attempts_done++;
                     msm_handler.next_state       = GET_MOTOR_ACK_ON_START;
                     msm_handler.go_to_next_state = true;
@@ -210,11 +207,13 @@ int main(void) {
                 break;
             case GET_MOTOR_ACK_ON_START:
                 current_tick = HAL_GetTick();
-                deadline     = current_tick + MAX_ACK_DELAY_ALLOWED_MS;
+                deadline     = current_tick + 10 * MAX_ACK_DELAY_ALLOWED_MS;
                 while (current_tick < deadline) {
-                    HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&rx_char, sizeof(rx_char));
-                    if (gui_cmd_handler.is_word_complete &&
-                        strcmp(gui_cmd_handler.cmd_received, "start_ack\r\n") == 0) {
+                    HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&slave_cmd_handler.last_char_received, sizeof(char));
+                    if (slave_cmd_handler.is_word_complete &&
+                        strcmp(slave_cmd_handler.cmd_received, "start_ack\r\n") == 0) {
+                        reset_cmd(&slave_cmd_handler);
+                        reset_cmd(&gui_cmd_handler);
                         msm_handler.next_state       = MOTOR_IS_RUNNING;
                         msm_handler.go_to_next_state = true;
                         current_tick                 = deadline;
@@ -236,11 +235,14 @@ int main(void) {
 
             case SENSORS_READING:
                 // do stuffs
-
+                //HAL_Delay(5000);
+                msm_handler.next_state       = SEND_STOP_MOTOR_CMD;
+                msm_handler.go_to_next_state = true;
                 break;
             case SEND_STOP_MOTOR_CMD:
                 if (sendings_attempts_done < MAX_CMD_SEND_ATTEMPTS) {
                     HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)MOTOR_STOP_FOREVER, sizeof(MOTOR_STOP_FOREVER), 100);
+                    reset_cmd(&slave_cmd_handler);
                     sendings_attempts_done++;
                     msm_handler.next_state       = GET_MOTOR_ACK_ON_STOP;
                     msm_handler.go_to_next_state = true;
@@ -251,10 +253,13 @@ int main(void) {
                 break;
             case GET_MOTOR_ACK_ON_STOP:
                 current_tick = HAL_GetTick();
-                deadline     = current_tick + MAX_ACK_DELAY_ALLOWED_MS;
+                deadline     = current_tick + 10 * MAX_ACK_DELAY_ALLOWED_MS;
                 while (current_tick < deadline) {
-                    HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&rx_char, sizeof(rx_char));
-                    if (gui_cmd_handler.is_word_complete && strcmp(gui_cmd_handler.cmd_received, "stop_ack\r\n") == 0) {
+                    HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&slave_cmd_handler.last_char_received, sizeof(char));
+                    if (slave_cmd_handler.is_word_complete &&
+                        strcmp(slave_cmd_handler.cmd_received, "stop_ack\r\n") == 0) {
+                        reset_cmd(&slave_cmd_handler);
+                        reset_cmd(&gui_cmd_handler);
                         msm_handler.next_state       = MOTOR_IS_STOPPED;
                         msm_handler.go_to_next_state = true;
                         current_tick                 = deadline;
@@ -270,6 +275,9 @@ int main(void) {
                 break;
             case MOTOR_IS_STOPPED:
                 //turn off transistor
+                HAL_Delay(2000);
+                msm_handler.next_state       = WAITING_FOR_CMD;
+                msm_handler.go_to_next_state = true;
                 break;
         }
 
@@ -363,19 +371,30 @@ void PeriphCommonClock_Config(void) {
 /* USER CODE BEGIN 4 */
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    // TODO: change into \n because minicom attach only \r (CR config)
-    gui_cmd_handler.cmd_received[gui_cmd_handler.char_index] = rx_char;
-    gui_cmd_handler.char_index++;
-    if (strcmp(&rx_char, "\n") == 0) {
-        // HAL_UART_Transmit(
-        //     &UART_USB, (uint8_t *)&gui_cmd_handler.cmd_received, sizeof(gui_cmd_handler.cmd_received), 100);
-        gui_cmd_handler.is_word_complete = true;
+    if (huart->Instance == UART_USB.Instance) {
+        gui_cmd_handler.cmd_received[gui_cmd_handler.char_index] = gui_cmd_handler.last_char_received;
+        gui_cmd_handler.char_index++;
+        if (gui_cmd_handler.last_char_received == '\n') {
+            gui_cmd_handler.is_word_complete = true;
+        }
+    } else if (huart->Instance == UART_SLAVE.Instance) {
+        slave_cmd_handler.cmd_received[slave_cmd_handler.char_index] = slave_cmd_handler.last_char_received;
+        slave_cmd_handler.char_index++;
+        if (slave_cmd_handler.last_char_received == '\n') {
+            slave_cmd_handler.is_word_complete = true;
+        }
     }
+}
+
+void reset_cmd(uart_rx_handler *uart_handler) {
+    uart_handler->char_index = 0;
+    memset(uart_handler->cmd_received, 0x0, sizeof(uart_handler->cmd_received));
+    uart_handler->is_word_complete = false;
 }
 
 bool parse_gui_cmd(char *cmd_rx) {
     bool cmd_is_valid = true;
-    char gui_output[10];
+    char gui_output[12];
     if (strcmp(cmd_rx, "brake+\r\n") == 0) {
         if (!magnetic_brake.is_braking) {
             brake_on(&magnetic_brake);

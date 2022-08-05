@@ -249,6 +249,9 @@ def main():
                                            callback=lambda: send_command(msc_handler, "master"))
                             dpg.add_button(label="SEND STRUCT TO MASTER",
                                            callback=lambda: send_struct(msc_handler, "master"))
+                        with dpg.group() as automatic_test_section:
+                            dpg.add_button(label="START AUTOMATIC MOTOR TEST",
+                                           callback=lambda: send_generic_command(msc_handler, "master", "start_motor"))
                     with dpg.group(horizontal=False):
                         # Slave selector
                         dpg.add_text("Available devices to be Slave")
@@ -394,6 +397,7 @@ def send_brake_command(msc, cmd):
     try:
         msc.send_cmd(cmd, "master")
         pwm_val = msc.read_line("master").decode()
+        print(pwm_val)
         dpg.set_value(item="pwm_text_field",
                       value=f"PWM: {float(pwm_val[4:8])*100}%")
     except Exception as e:
