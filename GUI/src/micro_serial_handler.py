@@ -155,3 +155,11 @@ class Micro_serial_handler():
 
         # x = unpack(">"+("f"*len(payload)), packet)
         # print(x)
+
+    def read_line(self, device_type):
+        if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
+            return self.serial_master_socket.readline()
+        elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
+            return self.serial_slave_socket.readline()
+        else:
+            print("ERROR: Device not connected!")

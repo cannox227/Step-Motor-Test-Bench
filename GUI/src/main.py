@@ -1,5 +1,6 @@
 from email.policy import default
 from readline import append_history_file
+from time import sleep
 from traceback import print_tb
 import dearpygui.dearpygui as dpg
 from matplotlib.style import available
@@ -270,6 +271,7 @@ def main():
                 with dpg.group() as brake_window:
                     dpg.add_text("Brake control", color=light_blue)
                     with dpg.group(horizontal=False) as brake_panel:
+                        dpg.add_text("PWM: 0%", tag="pwm_text_field")
                         with dpg.group(horizontal=True) as brake_subpanel_A:
                             dpg.add_button(
                                 label="Brake +", callback=lambda: send_brake_command(msc_handler, "brake+"))
@@ -391,6 +393,9 @@ def send_command(msc, device_type):
 def send_brake_command(msc, cmd):
     try:
         msc.send_cmd(cmd, "master")
+        pwm_val = msc.read_line("master").decode()
+        dpg.set_value(item="pwm_text_field",
+                      value=f"PWM: {float(pwm_val[4:8])*100}%")
     except Exception as e:
         update_and_show_error_popup(e)
 
