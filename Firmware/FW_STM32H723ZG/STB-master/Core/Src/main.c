@@ -235,7 +235,6 @@ int main(void) {
 
             case SENSORS_READING:
                 // do stuffs
-                //HAL_Delay(5000);
                 msm_handler.next_state       = SEND_STOP_MOTOR_CMD;
                 msm_handler.go_to_next_state = true;
                 break;
