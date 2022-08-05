@@ -193,23 +193,24 @@ def main():
                 dpg.add_text(label="")
                 dpg.add_separator()
 
-                with dpg.group(horizontal=False) as motor_control_buttons:
+                with dpg.group(horizontal=False) as motor_control_params:
                     dpg.add_text("Motor control", color=light_blue)
                     dpg.add_text("Input steps")
-                    dpg.add_input_int(tag="motor_steps_to_do", default_value=0, min_value=0,
-                                      max_value=999999, width=100, max_clamped=True, min_clamped=True)
-                    dpg.add_button(label="Move forward", callback=lambda: send_generic_command(
-                        msc_handler, "slave", "fw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
-                    dpg.add_button(label="Move backward", callback=lambda: send_generic_command(
-                        msc_handler, "slave", "bw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
-                    dpg.add_button(label="Go to position", callback=lambda: send_generic_command(
-                        msc_handler, "slave", "gt+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
-                    dpg.add_button(label="Go home", callback=lambda: send_generic_command(
-                        msc_handler, "slave", "gh+000000"))
-                    dpg.add_button(label="Motor stop", callback=lambda: send_generic_command(
-                        msc_handler, "slave", "st+000000"))
-                    dpg.add_button(label="Motor hold", callback=lambda: send_generic_command(
-                        msc_handler, "slave", "hd+000000"))
+                    with dpg.group(horizontal=True) as motor_control_buttons:
+                        dpg.add_input_int(tag="motor_steps_to_do", default_value=0, min_value=0,
+                                          max_value=999999, width=100, max_clamped=True, min_clamped=True)
+                        dpg.add_button(label="Move forward", callback=lambda: send_generic_command(
+                            msc_handler, "slave", "fw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                        dpg.add_button(label="Move backward", callback=lambda: send_generic_command(
+                            msc_handler, "slave", "bw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                        dpg.add_button(label="Go to position", callback=lambda: send_generic_command(
+                            msc_handler, "slave", "gt+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                        dpg.add_button(label="Go home", callback=lambda: send_generic_command(
+                            msc_handler, "slave", "gh+000000"))
+                        dpg.add_button(label="Motor stop", callback=lambda: send_generic_command(
+                            msc_handler, "slave", "st+000000"))
+                        dpg.add_button(label="Motor hold", callback=lambda: send_generic_command(
+                            msc_handler, "slave", "hd+000000"))
 
                 dpg.add_separator()
 
