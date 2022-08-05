@@ -1,0 +1,65 @@
+/*
+ * serial_cmd_parser.c
+ *
+ *  Created on: Aug 5, 2022
+ *      Author: macbookpro
+ */
+
+#include "serial_cmd_parser.h"
+#include "app_threadx.h"
+#include "serial_to_master_Task.h"
+#include "serial_to_GUI_Task.h"
+
+char tx_buff[TX_BUFF_SIZE];
+char motor_cmd[MOTOR_CMD_SIZE+1];
+char cmd_params[MOTOR_CMD_PARAM_SIZE+1];
+
+serial_handler STM_handler;
+serial_handler STG_handler;
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart->Instance == UART_TO_GUI.Instance){
+		STG_handler.is_cmd_received = true;
+	}else if(huart->Instance == UART_TO_MASTER.Instance){
+		STM_handler.is_cmd_received = true;
+	}
+}
+
+void build_cmd(){
+	strncpy(motor_cmd, STM_handler.cmd_received, MOTOR_CMD_SIZE);
+	//	motor_cmd[MOTOR_CMD_SIZE] = '\0';
+	strncpy(cmd_params, &STM_handler.cmd_received[MOTOR_CMD_SIZE+1], MOTOR_CMD_PARAM_SIZE);
+	//	STM_handler.cmd_received[MOTOR_CMD_PARAM_SIZE] = '\0';
+}
+
+bool parse_cmd(){
+	bool parse_error = false;
+	if(strcmp(motor_cmd, "fw")==0){
+		STM_handler.msg.cmd = MOTOR_MOVE_FW;
+		STM_handler.msg.val = atoi(cmd_params);
+	}else if((strcmp(motor_cmd, "bw")==0)){
+		STM_handler.msg.cmd = MOTOR_MOVE_BW;
+		STM_handler.msg.val = atoi(cmd_params);
+	}else if((strcmp(motor_cmd, "hd")==0)){
+		STM_handler.msg.cmd = MOTOR_HOLD;
+		STM_handler.msg.val = 0;
+	}else if((strcmp(motor_cmd, "st")==0)){
+		STM_handler.msg.cmd = MOTOR_STOP;
+		STM_handler.msg.val = 0;
+	}else if(strcmp(motor_cmd, "ps")==0){
+		STM_handler.msg.cmd = MOTOR_GET_POS;
+		STM_handler.msg.val = 0;
+	}else if((strcmp(motor_cmd, "gt")==0)){
+		STM_handler.msg.cmd = MOTOR_GO_TO;
+		STM_handler.msg.val = atoi(cmd_params);
+	}else if((strcmp(motor_cmd, "gh")==0)){
+		STM_handler.msg.cmd = MOTOR_GO_HOME;
+		STM_handler.msg.val = 0;
+	}else{
+		parse_error = true;
+	}
+	if(parse_error == 0){
+		tx_queue_send(ptr_motor_queue, &STM_handler.msg, TX_NO_WAIT);
+	}
+	return parse_error;
+}

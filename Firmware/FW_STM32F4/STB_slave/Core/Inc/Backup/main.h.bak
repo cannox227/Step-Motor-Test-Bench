@@ -85,6 +85,7 @@ void Error_Handler(void);
 #define BSP_MOTOR_CONTROL_BOARD_CS_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 #define UART_TO_GUI huart2
+#define UART_TO_MASTER huart6
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
