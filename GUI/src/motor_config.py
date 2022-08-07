@@ -143,6 +143,11 @@ class Motor_Config():
             "POWERSTEP01_TDT_4000ns": bin(0x1F << POWERSTEP01_TDT_SHIFT)
         }
 
+        self.powerstep01_CmVm_t = {
+            "POWERSTEP01_CM_VM_VOLTAGE": (0x00),
+            "POWERSTEP01_CM_VM_CURRENT": (0x08)
+        }
+
     def init_config(self, conf_name):
         obj = '''
         {
@@ -274,6 +279,12 @@ class Motor_Config():
     def get_TDT(self, TDT):
         return self.powerstep01_Tdt_t[TDT]
 
+    def get_CM_VM_keys(self):
+        return list(self.powerstep01_CmVm_t.keys())
+
+    def get_CM_VM(self, CM_VM):
+        return self.powerstep01_CmVm_t[CM_VM]
+
     def get_value_by_key(self, key, current_val):
         if key == "low_speed_optimization_bit":
             return self.get_LSPD_bit(current_val)
@@ -293,5 +304,7 @@ class Motor_Config():
             return self.get_TDT(current_val)
         elif key == "step_mode":
             return self.get_STEP_mode(current_val)
+        elif key == "working_mode":
+            return self.get_CM_VM(current_val)
         else:
             return -1

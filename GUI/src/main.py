@@ -172,8 +172,8 @@ def main():
                               width=200, items=motor_configuration.get_TDT_keys())
 
                 dpg.add_text("Operating mode", color=light_blue)
-                dpg.add_radio_button(tag="working_mode", horizontal=True, items=[
-                    "Voltage mode", "Current mode"], default_value="Voltage mode", callback=show_settings)
+                dpg.add_radio_button(tag="working_mode", horizontal=True, items=motor_configuration.get_CM_VM_keys(
+                ), default_value="Voltage mode", callback=show_settings)
 
                 # Motor settings in current mode
                 with dpg.group(xoffset=10, tag="motor_settings_current_mode", show=False) as motor_settings_current_mode:
