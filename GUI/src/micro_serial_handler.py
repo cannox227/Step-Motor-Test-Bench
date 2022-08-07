@@ -156,6 +156,17 @@ class Micro_serial_handler():
         # x = unpack(">"+("f"*len(payload)), packet)
         # print(x)
 
+    def custom_serialize_payload(self, payload, device_type, configuration):
+        packet = bytearray()
+        packet.extend(pack("<"+configuration, *payload))
+        print(packet)
+        if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
+            self.serial_master_socket.write(packet)
+            self.serial_master_socket.write("\n".encode('utf-8'))
+        elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
+            self.serial_slave_socket.write(packet)
+            self.serial_slave_socket.write("\n".encode('utf-8'))
+
     def read_line(self, device_type):
         if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
             return self.serial_master_socket.readline()

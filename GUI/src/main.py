@@ -92,7 +92,7 @@ def main():
     motor_configuration = motor_config.Motor_Config()
 
     # import JSON config file
-    motor_configuration.read_config_file("configs/config000.json")
+    motor_configuration.read_config_file("configs/conf01.json")
 
     # File manager read
     with dpg.file_dialog(directory_selector=False, show=False, user_data=motor_configuration, callback=manage_file, tag="file_dialog_r", height=50):
@@ -232,7 +232,7 @@ def main():
                 dpg.add_text(label="")
 
                 dpg.add_button(label="Load parameters into Powerstep",
-                               callback=load_parameters, user_data=motor_configuration)
+                               callback=lambda: load_parameters(motor_configuration, msc_handler))
 
                 with dpg.group(horizontal=True) as plot_params_VT:
                     dpg.add_button(label="Plot V-t", callback=lambda: plot_V())
@@ -335,6 +335,9 @@ def main():
                                 label="Brake MAX", callback=lambda: send_brake_command(msc_handler, "brake_on_max"))
                             dpg.add_button(
                                 label="Brake OFF", callback=lambda: send_brake_command(msc_handler, "brake_off"))
+    # Update gui with parameters
+    update_gui(motor_configuration)
+
     # Create viewport where windows will be contained
     dpg.create_viewport(
         title='ProM Motor driver configurator', x_pos=0, y_pos=0)
@@ -371,19 +374,38 @@ def plot_T():
     dpg.show_item("Motor Torque plot")
 
 
-def load_parameters(sender, app_data, user_data):
+def load_parameters(motor_conf, msc):
     items_to_be_sent = []
     text_to_be_shown = ""
+    counter = 0
+    serialization_configuration = ""
     try:
-        for i in user_data.get_config():
+        for i in motor_conf.get_config():
             # i: key, value = user_data.get_value(i)
             if i != "config_name":
-
+                counter += 1
+                transformed_element = motor_conf.get_value_by_key(
+                    i, dpg.get_value(i))
+                if transformed_element != -1:
+                    items_to_be_sent.append(transformed_element)
+                else:
+                    items_to_be_sent.append(dpg.get_value(i))
+                current_type = motor_conf.get_motor_param_type(
+                    transformed_element, i)
+                serialization_configuration += current_type
+                print(f"type of ({i}) = {current_type}")
                 support = (
-                    f"{i}: {dpg.get_value(i)} -> {user_data.get_value_by_key(i,dpg.get_value(i))}\r\n")
+                    f"{i}: {dpg.get_value(i)} -> {transformed_element}\r\n")
+                # print(support)
                 text_to_be_shown += support
-                print(support)
-                #print(i, dpg.get_value(i))
+                # print(i, dpg.get_value(i))
+
+        print(items_to_be_sent)
+        print(serialization_configuration)
+        # Checksum
+        print(f"List len: {len(items_to_be_sent)}, len config: {counter}")
+        msc.custom_serialize_payload(
+            items_to_be_sent, "slave", serialization_configuration)
         dpg.set_value("current_config_text", text_to_be_shown)
         dpg.show_item("current_config_dialog")
     except Exception as e:
@@ -487,6 +509,25 @@ def save_callback(sender, app_data, user_data):
             user_data.set_value(i, dpg.get_value(i))
     user_data.write_config_file(
         f"configs/{user_data.get_value('config_name')}.json")
+
+
+def update_gui(msc):
+    try:
+        for i in msc.get_config():
+            # print(i)
+            # i: key, value = user_data.get_value(i)
+            if i != "config_name":
+                if i == "working_mode":
+                    if msc.get_value(i) == "POWERSTEP01_CM_VM_VOLTAGE":
+                        dpg.show_item("motor_settings_voltage_mode")
+                        dpg.hide_item("motor_settings_current_mode")
+                    elif msc.get_value(i) == "POWERSTEP01_CM_VM_CURRENT":
+                        dpg.show_item("motor_settings_current_mode")
+                        dpg.hide_item("motor_settings_voltage_mode")
+
+                dpg.set_value(i, msc.get_value(i))
+    except Exception as e:
+        print(e)
 
 
 def print_current_config(sender, app_data, user_data):
