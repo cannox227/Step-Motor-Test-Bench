@@ -1,5 +1,5 @@
 {
-  "config_name": "config_with_common_vals",
+  "config_name": "conf01",
   "acceleration_rate": 14.550000190734863,
   "deceleration_rate": 14.550000190734863,
   "max_speed": 15.25,
@@ -20,7 +20,8 @@
   "current_running_torque_mv": 7.800000190734863,
   "current_acceleration_torque_mv": 7.800000190734863,
   "current_deceleration_torque_mv": 7.800000190734863,
-  "current_max_decay_time_us": "POWERSTEP01_TOFF_FAST_4us",
+  "current_max_decay_time_us": "POWERSTEP01_TOFF_FAST_8us",
+  "current_max_fall_time_us": "POWERSTEP01_FAST_STEP_14us",
   "current_min_on_time_us": 0.5,
   "current_min_off_time_us": 0.5,
   "voltage_hold_perc": 0.0,

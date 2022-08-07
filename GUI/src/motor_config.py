@@ -148,6 +148,46 @@ class Motor_Config():
             "POWERSTEP01_CM_VM_CURRENT": (0x08)
         }
 
+        # current structs
+        POWERSTEP01_TOFF_FAST_SHIFT = 4
+        self.powerstep01_ToffFast_t = {
+            "POWERSTEP01_TOFF_FAST_2us": bin(0x00 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_4us": bin(0x01 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_6us": bin(0x02 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_8us": bin(0x03 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_10us": bin(0x04 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_12us": bin(0x05 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_14us": bin(0x06 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_16us": bin(0x07 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_18us": bin(0x08 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_20us": bin(0x09 << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_22us": bin(0x0A << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_24us": bin(0x0B << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_26us": bin(0x0C << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_28us": bin(0x0D << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_30us": bin(0x0E << POWERSTEP01_TOFF_FAST_SHIFT),
+            "POWERSTEP01_TOFF_FAST_32us": bin(0x0F << POWERSTEP01_TOFF_FAST_SHIFT)
+        }
+        POWERSTEP01_FAST_STEP_SHIFT = 0
+        self.powerstep01_FastStep_t = {
+            "POWERSTEP01_FAST_STEP_2us":  bin(0x00 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_4us":  bin(0x01 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_6us":  bin(0x02 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_8us":  bin(0x03 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_10us": bin(0x04 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_12us": bin(0x05 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_14us": bin(0x06 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_16us": bin(0x07 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_18us": bin(0x08 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_20us": bin(0x09 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_22us": bin(0x0A << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_24s": bin(0x0B << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_26us": bin(0x0C << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_28us": bin(0x0D << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_30us": bin(0x0E << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_32us": bin(0x0F << POWERSTEP01_FAST_STEP_SHIFT)
+        }
+
     def init_config(self, conf_name):
         obj = '''
         {
@@ -172,6 +212,8 @@ class Motor_Config():
             "current_running_torque_mv": 0,
             "current_acceleration_torque_mv": 0,
             "current_deceleration_torque_mv": 0,
+            "current_max_decay_time_us": 0,
+            "current_max_fall_time_us":0,
             "current_min_on_time_us": 0,
             "current_min_off_time_us": 0,
             "voltage_hold_perc": 0,
@@ -285,6 +327,18 @@ class Motor_Config():
     def get_CM_VM(self, CM_VM):
         return self.powerstep01_CmVm_t[CM_VM]
 
+    def get_TOFF_FAST_keys(self):
+        return list(self.powerstep01_ToffFast_t.keys())
+
+    def get_TOFF_FAST(self, TOFF_FAST):
+        return self.powerstep01_ToffFast_t[TOFF_FAST]
+
+    def get_FAST_STEP_keys(self):
+        return list(self.powerstep01_FastStep_t.keys())
+
+    def get_FAST_STEP(self, FAST_STEP):
+        return self.powerstep01_FastStep_t[FAST_STEP]
+
     def get_value_by_key(self, key, current_val):
         if key == "low_speed_optimization_bit":
             return self.get_LSPD_bit(current_val)
@@ -306,5 +360,9 @@ class Motor_Config():
             return self.get_STEP_mode(current_val)
         elif key == "working_mode":
             return self.get_CM_VM(current_val)
+        elif key == "current_max_decay_time_us":
+            return self.get_TOFF_FAST(current_val)
+        elif key == "current_max_fall_time_us":
+            return self.get_FAST_STEP(current_val)
         else:
             return -1

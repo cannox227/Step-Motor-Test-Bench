@@ -20,6 +20,8 @@
   "current_running_torque_mv": 0,
   "current_acceleration_torque_mv": 0,
   "current_deceleration_torque_mv": 0,
+  "current_max_decay_time_us": 0,
+  "current_max_fall_time_us": 0,
   "current_min_on_time_us": 0,
   "current_min_off_time_us": 0,
   "voltage_hold_perc": 0,

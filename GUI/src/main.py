@@ -28,10 +28,10 @@ def devices_selector_callback(sender, app_data, user_data):
 
 
 def show_settings(sender, app_data):
-    if app_data == "Voltage mode":
+    if app_data == "POWERSTEP01_CM_VM_VOLTAGE":
         dpg.show_item("motor_settings_voltage_mode")
         dpg.hide_item("motor_settings_current_mode")
-    elif app_data == "Current mode":
+    elif app_data == "POWERSTEP01_CM_VM_CURRENT":
         dpg.show_item("motor_settings_current_mode")
         dpg.hide_item("motor_settings_voltage_mode")
 
@@ -177,17 +177,28 @@ def main():
 
                 # Motor settings in current mode
                 with dpg.group(xoffset=10, tag="motor_settings_current_mode", show=False) as motor_settings_current_mode:
+                    # Current hold torque
                     dpg.add_input_float(
                         tag="current_hold_torque_mv", label="Hold torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    # Current running torque
                     dpg.add_input_float(
                         tag="current_running_torque_mv", label="Running torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    # Current acceleration torque
                     dpg.add_input_float(
                         tag="current_acceleration_torque_mv", label="Acceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    # Current deceleration torque
                     dpg.add_input_float(
                         tag="current_deceleration_torque_mv", label="Deceleration torque [mV] (min: 7.8, max: 1000)", default_value=7.8, max_value=1000, min_value=7.8, format="%.2f", min_clamped=True, max_clamped=True, width=100)
-
+                    # Maximum fast decay time
+                    dpg.add_combo(tag="current_max_decay_time_us", label="Maximum fast decay time [us]",
+                                  items=motor_configuration.get_TOFF_FAST_keys(), width=200)
+                    # Maximum fall step time
+                    dpg.add_combo(tag="current_max_fall_time_us", label="Maximum fall step time [us]",
+                                  items=motor_configuration.get_FAST_STEP_keys(), width=200)
+                    # Minimum on-time
                     dpg.add_input_float(
                         tag="current_min_on_time_us", label="Minmum on-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
+                    # Maximum off-time
                     dpg.add_input_float(
                         tag="current_min_off_time_us", label="Minmum off-time [us] (min: 0.5, max: 64)", default_value=0.5, max_value=64, min_value=0.5, format="%.2f", min_clamped=True, max_clamped=True, width=100)
 
@@ -507,6 +518,8 @@ def manage_file(sender, app_data, user_data):
         # i: key, value = user_data.get_value(i)
         if i != "config_name":
             dpg.set_value(i, user_data.get_value(i))
+
+    show_settings(sender, user_data.get_value("working_mode"))
 
 
 def create_file(sender, app_data, user_data):
