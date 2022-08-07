@@ -1,3 +1,4 @@
+from cgitb import text
 from email.policy import default
 from readline import append_history_file
 from time import sleep
@@ -20,10 +21,10 @@ MAX_MOTOR_STEP_DIGITS = 6
 def devices_selector_callback(sender, app_data, user_data):
     if sender == "master_device_list":
         user_data.set_selected_device(app_data, "master")
-        #print(f'Selected {user_data.get_selected_device("master")}')
+        # print(f'Selected {user_data.get_selected_device("master")}')
     elif sender == "slave_device_list":
         user_data.set_selected_device(app_data, "slave")
-        #print(f'Selected {user_data.get_selected_device("slave")}')
+        # print(f'Selected {user_data.get_selected_device("slave")}')
 
 
 def show_settings(sender, app_data):
@@ -124,17 +125,52 @@ def main():
             with dpg.group(horizontal=False) as motor_settings:
 
                 dpg.add_text("Common settings", color=light_blue)
+                # Acceleration
+                dpg.add_input_float(tag="acceleration_rate", label="Acceleration_rate [step/s2] (min: 14.55, max: 59590)",
+                                    default_value=14.55, max_value=59590, min_value=14.55, min_clamped=True, max_clamped=True, width=100)
+                # Deceleration
+                dpg.add_input_float(tag="deceleration_rate", label="Deceleration_rate [step/s2] (min: 14.55, max: 59590)",
+                                    default_value=14.55, max_value=59590, min_value=14.55, min_clamped=True, max_clamped=True, width=100)
+                # Max speed
                 dpg.add_input_float(
                     tag="max_speed", label="Max speed [step/s] (min: 15.25, max: 15610)", default_value=15.25, max_value=15610, min_value=15.25, min_clamped=True, max_clamped=True, width=100)
+                # Min speed
                 dpg.add_input_float(
                     tag="min_speed", label="Min speed [step/s] (min: 0, max: 976.3)", default_value=0, max_value=976.3, min_value=0, min_clamped=True, max_clamped=True, width=100)
+                # Low speed optimization bit
+                dpg.add_combo(tag="low_speed_optimization_bit", label="Low speed optimization bit",
+                              items=motor_configuration.get_LSPD_bit_keys(), width=200)
+                # Fullstep speed
                 dpg.add_input_float(
                     tag="full_step_speed", label="Full step speed [step/s] (min: 7.63, max: 15625)", default_value=7.63, max_value=15625, min_value=7.63, min_clamped=True, max_clamped=True, width=100)
-                # check the enum
+                # Boost mode bit
+                dpg.add_combo(tag="boost_mode_bit", label="Boost mode bit",
+                              items=motor_configuration.get_BOOST_mode_keys(), width=200)
+                # Over current detection threshold
                 dpg.add_input_float(tag="overcurrent_threshold",
                                     label="Overcurrent threshold", default_value=281.25,  min_clamped=True, max_clamped=True, width=100)
+                # Step mode
                 dpg.add_combo(tag="step_mode", label="Step mode",
-                              items=["A", "B", "C"], width=100)
+                              items=motor_configuration.get_STEP_MODE_keys(), width=200)
+                # Gate sink/source current used by gate driving circuitry
+                dpg.add_combo(tag="gate_sink_source_current", label="Gate sink/source current",
+                              width=200, items=motor_configuration.get_I_GATE_keys())
+                # Duration of the overboost phase during gate turn-off
+                dpg.add_combo(tag="turn_off_time_boost", label="Turn off time boost",
+                              width=200, items=motor_configuration.get_TBOOST_keys())
+                # Duration of constant current phase during gate turn-on and turn-off
+                dpg.add_combo(tag="tcc", label="TCC", width=200,
+                              items=motor_configuration.get_TCC_keys())
+                # External clock watchdog
+                dpg.add_combo(tag="clock_wd_enable", label="Ext CLK watchdog",
+                              width=200, items=motor_configuration.get_WD_EN_keys())
+                # Blanking time
+                dpg.add_combo(tag="blanking_time", label="Blanking time",
+                              width=200, items=motor_configuration.get_TBLANK_keys())
+                # Dead time
+                dpg.add_combo(tag="dead_time", label="Dead time",
+                              width=200, items=motor_configuration.get_TDT_keys())
+
                 dpg.add_text("Operating mode", color=light_blue)
                 dpg.add_radio_button(tag="working_mode", horizontal=True, items=[
                     "Voltage mode", "Current mode"], default_value="Voltage mode", callback=show_settings)
@@ -183,6 +219,9 @@ def main():
                 dpg.add_text(label="")
                 dpg.add_separator()
                 dpg.add_text(label="")
+
+                dpg.add_button(label="Load parameters into Powerstep",
+                               callback=load_parameters, user_data=motor_configuration)
 
                 with dpg.group(horizontal=True) as plot_params_VT:
                     dpg.add_button(label="Plot V-t", callback=lambda: plot_V())
@@ -321,6 +360,26 @@ def plot_T():
     dpg.show_item("Motor Torque plot")
 
 
+def load_parameters(sender, app_data, user_data):
+    items_to_be_sent = []
+    text_to_be_shown = ""
+    try:
+        for i in user_data.get_config():
+            # i: key, value = user_data.get_value(i)
+            if i != "config_name":
+
+                support = (
+                    f"{i}: {dpg.get_value(i)} -> {user_data.get_value_by_key(i,dpg.get_value(i))}\r\n")
+                text_to_be_shown += support
+                print(support)
+                #print(i, dpg.get_value(i))
+        dpg.set_value("current_config_text", text_to_be_shown)
+        dpg.show_item("current_config_dialog")
+    except Exception as e:
+        dpg.set_value("Connection error message", f"Error: {e}")
+        dpg.show_item("connection_error_dialog")
+
+
 def build_cmd(val):
     str_val = str(val)
     zeros = MAX_MOTOR_STEP_DIGITS - len(str_val)
@@ -420,6 +479,11 @@ def save_callback(sender, app_data, user_data):
 
 
 def print_current_config(sender, app_data, user_data):
+    for i in user_data.get_config():
+        # i: key, value = user_data.get_value(i)
+        if i != "config_name":
+            print(f"{i}: {dpg.get_value(i)}")
+            user_data.set_value(i, dpg.get_value(i))
     dpg.set_value("current_config_text",
                   str(user_data.get_config()).replace(',', '\r\n').replace('{', '').replace('}', ''))
     dpg.show_item("current_config_dialog")
