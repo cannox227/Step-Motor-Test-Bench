@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    adc.h
+  * @file    bdma.h
   * @brief   This file contains all the function prototypes for
-  *          the adc.c file
+  *          the bdma.c file
   ******************************************************************************
   * @attention
   *
@@ -17,8 +17,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __ADC_H__
-#define __ADC_H__
+#ifndef __BDMA_H__
+#define __BDMA_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,40 +26,27 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "string.h"
+
+/* DMA memory to memory transfer handles -------------------------------------*/
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-extern ADC_HandleTypeDef hadc1;
-extern ADC_HandleTypeDef hadc2;
-extern ADC_HandleTypeDef hadc3;
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void MX_ADC1_Init(void);
-void MX_ADC2_Init(void);
-void MX_ADC3_Init(void);
+void MX_BDMA_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void ADC_Calibration();
-void ADC_start_DMA_readings();
-uint16_t ADC_get_current_raw();
-float ADC_get_current_to_gpio_level();
-uint16_t ADC_get_torque_raw();
-float ADC_get_torque_to_gpio_level();
-uint16_t ADC_get_voltage_raw();
-float ADC_get_voltage_to_gpio_level();
-float ADC_get_voltage_converted();
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __ADC_H__ */
+#endif /* __BDMA_H__ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

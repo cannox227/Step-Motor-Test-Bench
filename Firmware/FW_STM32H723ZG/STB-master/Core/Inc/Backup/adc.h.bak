@@ -45,7 +45,11 @@ void MX_ADC2_Init(void);
 void MX_ADC3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void ADC_Calibration();
+void ADC_start_DMA_readings();
+uint16_t ADC_get_current_raw();
+uint16_t ADC_get_torque_raw();
+uint16_t ADC_get_voltage_raw();
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

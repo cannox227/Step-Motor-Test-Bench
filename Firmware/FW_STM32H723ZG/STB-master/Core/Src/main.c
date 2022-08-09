@@ -21,6 +21,7 @@
 #include "main.h"
 
 #include "adc.h"
+#include "dma.h"
 #include "eth.h"
 #include "gpio.h"
 #include "tim.h"
@@ -32,6 +33,7 @@
 #include "brake.h"
 #include "pwm.h"
 #include "slave_cmd_utils.h"
+#include "timer_utils.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -97,7 +99,6 @@ uint32_t deadline              = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 bool parse_gui_cmd(char *cmd_rx);
 void reset_cmd(uart_rx_handler *uart_handler);
@@ -109,9 +110,9 @@ void reset_cmd(uart_rx_handler *uart_handler);
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void) {
     /* USER CODE BEGIN 1 */
 
@@ -130,41 +131,92 @@ int main(void) {
     HAL_Init();
 
     /* USER CODE BEGIN Init */
-
+    MX_GPIO_Init();
+    MX_DMA_Init();
     /* USER CODE END Init */
 
     /* Configure the system clock */
     SystemClock_Config();
-
-    /* Configure the peripherals common clocks */
-    PeriphCommonClock_Config();
 
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
-    MX_GPIO_Init();
+    //MX_GPIO_Init();
     MX_ETH_Init();
     MX_USART3_UART_Init();
     MX_USB_OTG_HS_USB_Init();
     MX_ADC1_Init();
     MX_ADC2_Init();
+    MX_USART1_UART_Init();
+    MX_TIM1_Init();
+    // MX_DMA_Init();
     MX_ADC3_Init();
     MX_TIM3_Init();
-    MX_USART1_UART_Init();
+    MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
+
+    /*
+        Please note that sometimes CubeMX will put MX_DMA_Init() after all the MX_ADCx_Init() functions
+        this may be occur in some DMA errors, as conquence it's it advised to keep the following structure:
+
+        MX_GPIO_Init();
+        MX_DMA_Init();
+        SystemClock_Config();
+        ...
+        MX_ADC1_Init();
+        MX_ADC2_Init();
+        MX_ADC3_Init();
+
+
+        In the case where DMA goes into overrun error please check this 
+        https://community.st.com/s/article/FAQ-DMA-is-not-working-on-STM32H7-devices
+    
+    */
 
     brake_init(&magnetic_brake);
     brake_set_pwm_duty_cycle(&magnetic_brake, 0.5);
 
+    ADC_Calibration();
+    ADC_start_DMA_readings();
+    //volatile uint32_t clk_freq;
+    volatile uint16_t current_v;
+    volatile uint16_t trq_v;
+    volatile uint16_t volt_v;
+    volatile float volt;
+    volatile float volt_converted;
+    volatile float trq;
+    volatile float current;
     //brake_on(&magnetic_brake);
-
+    char adc_out[100];
+    memset(adc_out, 0x00, sizeof(adc_out));
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
+        while (1) {
+            current_v      = ADC_get_current_raw();
+            volt_v         = ADC_get_voltage_raw();
+            trq_v          = ADC_get_torque_raw();
+            volt           = ADC_get_voltage_to_gpio_level();
+            volt_converted = ADC_get_voltage_converted();
+            trq            = ADC_get_torque_to_gpio_level();
+            current        = ADC_get_current_to_gpio_level();
+            //clk_freq  = TIM_GetInternalClkFreq(&TIMER_ADC_TRIGGER_CONVERSIONS);
+            sprintf(
+                adc_out,
+                "RAW Current: %hu -> %.2f, Volt: %hu -> %.2f -> %.2f, Trq: %hu -> %.2f \r\n",
+                current_v,
+                current,
+                volt_v,
+                volt,
+                volt_converted,
+                trq_v,
+                trq);
+            HAL_UART_Transmit(&UART_USB, (uint8_t *)adc_out, sizeof(adc_out), 100);
+        }
         if (msm_handler.go_to_next_state) {
             msm_handler.current_state = msm_handler.next_state;
         }
@@ -235,6 +287,7 @@ int main(void) {
 
             case SENSORS_READING:
                 // do stuffs
+                HAL_Delay(5000);
                 msm_handler.next_state       = SEND_STOP_MOTOR_CMD;
                 msm_handler.go_to_next_state = true;
                 break;
@@ -288,28 +341,25 @@ int main(void) {
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
     /** Supply configuration update enable
-   */
+  */
     HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
     /** Configure the main internal regulator output voltage
-   */
+  */
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
     while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
     }
-    /** Macro to configure the PLL clock source
-   */
-    __HAL_RCC_PLL_PLLSOURCE_CONFIG(RCC_PLLSOURCE_HSE);
     /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
+  * in the RCC_OscInitTypeDef structure.
+  */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48 | RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState       = RCC_HSE_BYPASS;
     RCC_OscInitStruct.HSI48State     = RCC_HSI48_ON;
@@ -327,7 +377,7 @@ void SystemClock_Config(void) {
         Error_Handler();
     }
     /** Initializes the CPU, AHB and APB buses clocks
-   */
+  */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 |
                                   RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1 | RCC_CLOCKTYPE_D1PCLK1;
     RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;
@@ -339,30 +389,6 @@ void SystemClock_Config(void) {
     RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
-        Error_Handler();
-    }
-}
-
-/**
- * @brief Peripherals Common Clock Configuration
- * @retval None
- */
-void PeriphCommonClock_Config(void) {
-    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
-
-    /** Initializes the peripherals clock
-   */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-    PeriphClkInitStruct.PLL2.PLL2M           = 1;
-    PeriphClkInitStruct.PLL2.PLL2N           = 24;
-    PeriphClkInitStruct.PLL2.PLL2P           = 2;
-    PeriphClkInitStruct.PLL2.PLL2Q           = 2;
-    PeriphClkInitStruct.PLL2.PLL2R           = 2;
-    PeriphClkInitStruct.PLL2.PLL2RGE         = RCC_PLL2VCIRANGE_3;
-    PeriphClkInitStruct.PLL2.PLL2VCOSEL      = RCC_PLL2VCOWIDE;
-    PeriphClkInitStruct.PLL2.PLL2FRACN       = 0;
-    PeriphClkInitStruct.AdcClockSelection    = RCC_ADCCLKSOURCE_PLL2;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
         Error_Handler();
     }
 }
@@ -426,9 +452,9 @@ bool parse_gui_cmd(char *cmd_rx) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void) {
     /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
@@ -440,12 +466,12 @@ void Error_Handler(void) {
 
 #ifdef USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line) {
     /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,

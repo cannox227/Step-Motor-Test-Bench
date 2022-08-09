@@ -68,16 +68,10 @@ void Error_Handler(void);
 #define MCO_GPIO_Port                   GPIOH
 #define RMII_MDC_Pin                    GPIO_PIN_1
 #define RMII_MDC_GPIO_Port              GPIOC
-#define VOLTAGE_STEPPER_ADC_Pin         GPIO_PIN_3
-#define VOLTAGE_STEPPER_ADC_GPIO_Port   GPIOC
 #define RMII_REF_CLK_Pin                GPIO_PIN_1
 #define RMII_REF_CLK_GPIO_Port          GPIOA
 #define RMII_MDIO_Pin                   GPIO_PIN_2
 #define RMII_MDIO_GPIO_Port             GPIOA
-#define TORQUE_ADC_Pin                  GPIO_PIN_3
-#define TORQUE_ADC_GPIO_Port            GPIOA
-#define CURRENT_ADC_Pin                 GPIO_PIN_5
-#define CURRENT_ADC_GPIO_Port           GPIOA
 #define RMII_CRS_DV_Pin                 GPIO_PIN_7
 #define RMII_CRS_DV_GPIO_Port           GPIOA
 #define RMII_RXD0_Pin                   GPIO_PIN_4
@@ -86,6 +80,8 @@ void Error_Handler(void);
 #define RMII_RXD1_GPIO_Port             GPIOC
 #define LED_GREEN_Pin                   GPIO_PIN_0
 #define LED_GREEN_GPIO_Port             GPIOB
+#define DEBUG_MEAS_GPIO_Pin             GPIO_PIN_1
+#define DEBUG_MEAS_GPIO_GPIO_Port       GPIOG
 #define RMII_TXD1_Pin                   GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port             GPIOB
 #define LED_RED_Pin                     GPIO_PIN_14
@@ -122,10 +118,25 @@ void Error_Handler(void);
 #define LED_YELLOW_GPIO_Port            GPIOE
 /* USER CODE BEGIN Private defines */
 
-#define UART_USB                huart3
-#define UART_SLAVE              huart1
-#define TIMER_BRAKE_PWM         htim3
-#define TIMER_BRAKE_PWM_CHANNEL TIM_CHANNEL_3
+#define UART_USB                          huart3
+#define UART_SLAVE                        huart1
+#define TIMER_BRAKE_PWM                   htim3
+#define TIMER_BRAKE_PWM_CHANNEL           TIM_CHANNEL_3
+#define TIMER_ADC_TRIGGER_CONVERSIONS     htim1
+#define TIMER_ADC_CHANNEL_CURRENT_TRIGGER TIM_CHANNEL_1
+#define TIMER_ADC_CHANNEL_TORQUE_TRIGGER  TIM_CHANNEL_2
+#define TIMER_ADC_CHANNEL_VOLTAGE_TRIGGER TIM_CHANNEL_3
+#define ADC_CURRENT                       hadc1
+#define ADC_CURRENT_CHANNEL               ADC_CHANNEL_9
+#define ADC_TORQUE                        hadc2
+#define ADC_TORQUE_CHANNEL                ADC_CHANNEL_15
+#define ADC_VOLTAGE                       hadc3
+#define ADC_VOLTAGE_CHANNEL               ADC_CHANNEL_1
+#define DMA_CURRENT                       hdma_adc1
+#define DMA_TORQUE                        hdma_adc2
+#define DMA_VOLTAGE                       hdma_adc3
+
+#define MAX_STEPPER_SUPPLY 24
 
 /* USER CODE END Private defines */
 

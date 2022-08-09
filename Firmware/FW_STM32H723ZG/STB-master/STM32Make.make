@@ -41,6 +41,7 @@ Core/Lib/pwm/pwm.c \
 Core/Lib/slave_cmd_utils/slave_cmd_utils.c \
 Core/Lib/timer_utils/timer_utils.c \
 Core/Src/adc.c \
+Core/Src/dma.c \
 Core/Src/eth.c \
 Core/Src/gpio.c \
 Core/Src/main.c \
