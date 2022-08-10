@@ -97,8 +97,8 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 	task_Powerstep01_Init(&ptr_motor_cmd_queue);
 
 	/* Tasks creation */
-	tx_thread_create(&serial_to_GUI_thread_ptr, "serial to gui", task_Serial_to_GUI, 20, serial_to_GUI_stack, THREAD_STACK_SIZE, 14, 14, TX_NO_TIME_SLICE, TX_AUTO_START);
-	tx_thread_create(&serial_to_master_thread_ptr, "serial to master", task_Serial_to_master, 20, serial_to_master_stack, THREAD_STACK_SIZE, 13, 13, TX_NO_TIME_SLICE, TX_AUTO_START);
+	tx_thread_create(&serial_to_GUI_thread_ptr, "serial to gui", task_Serial_to_GUI, 33, serial_to_GUI_stack, THREAD_STACK_SIZE, 12, 12, 100, TX_AUTO_START);
+	tx_thread_create(&serial_to_master_thread_ptr, "serial to master", task_Serial_to_master, 33, serial_to_master_stack, THREAD_STACK_SIZE, 12, 12, 100, TX_AUTO_START);
 	tx_thread_create(&powerstep_thread_ptr, "powerstep", task_Powerstep01, 30, powerstep_stack, THREAD_STACK_SIZE, 9, 9, TX_NO_TIME_SLICE, TX_AUTO_START);
 
 

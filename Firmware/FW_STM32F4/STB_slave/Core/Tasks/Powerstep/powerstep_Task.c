@@ -24,7 +24,7 @@ static void ErrorHandler(uint16_t error);
 
 void task_Powerstep01(uint32_t interval)
 {
-	//initMotor();
+	initMotor();
 	goForward(500);
 	while(1)
 	{
