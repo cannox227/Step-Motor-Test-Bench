@@ -1,12 +1,15 @@
-from ctypes import sizeof
 import serial.tools.list_ports
-import io
+import time
+import queue
 from struct import *
+import threading
 
 
-class Micro_serial_handler():
+class Micro_serial_handler(threading.Thread):
 
     def __init__(self):
+        threading.Thread.__init__(self)
+        self.is_running = False
         self.available_devices = []
         self.serial_master_socket = None
         self.serial_slave_socket = None
@@ -14,6 +17,10 @@ class Micro_serial_handler():
         self.selected_slave_device = None
         self.last_master_cmd_sent = "none"
         self.last_slave_cmd_sent = "none"
+
+    def config(self, serial_slave_echo: queue.Queue, serial_master_echo: queue.Queue):
+        self.serial_slave_echo = serial_slave_echo
+        self.serial_master_echo = serial_master_echo
 
     def update_available_devices(self):
         """ Update the list of available devices
@@ -106,6 +113,17 @@ class Micro_serial_handler():
         except Exception as e:
             return False
 
+    def close_connection(self, device_type):
+        reti = True
+        try:
+            if device_type == "master" and self.serial_master_socket.is_open:
+                self.serial_master_socket.close()
+            elif device_type == "slave" and self.serial_slave_socket.is_open:
+                self.serial_slave_socket.close()
+        except Exception as e:
+            reti = False
+        return reti
+
     def send_hello(self, device_name, device_type):
         """Send hello message to the device
 
@@ -167,10 +185,45 @@ class Micro_serial_handler():
             self.serial_slave_socket.write(packet)
             self.serial_slave_socket.write("\n".encode('utf-8'))
 
-    def read_line(self, device_type):
-        if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
-            return self.serial_master_socket.readline()
-        elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
-            return self.serial_slave_socket.readline()
-        else:
-            print("ERROR: Device not connected!")
+    def read_line(self, device_type) -> bytes:
+        try:
+            if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
+                return self.serial_master_socket.readline()
+            elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
+                return self.serial_slave_socket.readline()
+        except Exception as e:
+            print(f"ERROR {e} - {device_type} device not connected!")
+
+    def slave_echo_callback(self):
+        while self.is_running:
+            slave_tx = self.read_line("slave")
+            if self.read_line("slave") != None:
+                # Note that with a fixed size buffer all NULL chars are filed with \x00
+                # To display in a correct way on the gui it's necessary to erase those chars
+                slave_tx = slave_tx.decode('utf-8').strip().strip('\x00')
+                self.serial_slave_echo.put(slave_tx)
+            time.sleep(0.01)
+
+    def master_echo_callback(self):
+        while self.is_running:
+            master_tx = self.read_line("master")
+            if self.read_line("master") != None:
+                # Note that with a fixed size buffer all NULL chars are filed with \x00
+                # To display in a correct way on the gui it's necessary to erase those chars
+                master_tx = master_tx.decode('utf-8').strip().strip('\x00')
+                self.serial_master_echo.put(master_tx)
+            time.sleep(0.01)
+
+    def run(self):
+        self.is_running = True
+        self.serial_slave_listener = threading.Thread(
+            target=self.slave_echo_callback)
+        self.serial_slave_listener.start()
+        self.serial_master_listener = threading.Thread(
+            target=self.master_echo_callback)
+        self.serial_master_listener.start()
+
+    def stop(self):
+        self.running = False
+        self.serial_slave_listener.join()
+        self.serial_master_listener.join()
