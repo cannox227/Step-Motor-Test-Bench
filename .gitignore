@@ -132,6 +132,9 @@ dmypy.json
 **/.DS_Store
 .DS_Store
 
+#Csv files
+*.csv
+
 #Cube IDE
 # STM32Cube copied library and project folders
 **/Drivers/*
