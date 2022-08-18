@@ -1,9 +1,10 @@
+from fileinput import filename
 from io import StringIO
 from time import sleep
 from datetime import datetime
 import csv
 import dearpygui.dearpygui as dpg
-from matplotlib.style import available
+import matplotlib.pyplot as plt
 import plot as plot
 import motor_config
 import micro_serial_handler
@@ -41,10 +42,6 @@ def plot_T():
     plot.plot_T()
     dpg.set_value("T vals", [plot.get_xvals(), plot.get_yvals()])
     dpg.show_item("Motor Torque plot")
-
-
-def show_csv_window():
-    dpg.show_item("csv_plot_window")
 
 
 def load_parameters(motor_conf, msc):
@@ -94,7 +91,17 @@ def build_cmd(val):
 def update_and_show_error_popup(e):
     dpg.set_value("Connection error message", f"Error: {e}")
     dpg.show_item("connection_error_dialog")
-    print(e)
+    # print(e)
+
+
+def update_and_show_generic_error_popup(e):
+    dpg.set_value("error_dialog_message", f"Error: {e}")
+    dpg.show_item("error_dialog")
+
+
+def update_and_show_generic_success_popup(e):
+    dpg.set_value("success_dialog_message", f"Success: {e}")
+    dpg.show_item("success_dialog")
 
 
 def update_device_list(msc):
@@ -309,6 +316,18 @@ class GUI(threading.Thread):
             dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
                 item="connection_error_dialog"))
 
+        # Generic error dialog
+        with dpg.window(label="Error", tag="error_dialog", pos=(300, 300), show=False):
+            dpg.add_text("Error message", tag="error_dialog_message")
+            dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
+                item="error_dialog"))
+
+        # Generic success dialog
+        with dpg.window(label="Succes", tag="success_dialog", pos=(300, 300), show=False):
+            dpg.add_text("Success message", tag="success_dialog_message")
+            dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
+                item="success_dialog"))
+
         # Config popup
             with dpg.window(label="Current config", tag="current_config_dialog", pos=(300, 300), show=False):
                 dpg.add_text("", tag="current_config_text")
@@ -318,12 +337,15 @@ class GUI(threading.Thread):
         # CSV plot popup
         with dpg.window(label="CSV PLOT", tag="csv_plot_window", pos=(300, 300), show=False):
             dpg.add_text("", tag="csv_plot_text")
+            dpg.add_text("Plot preview")
             with dpg.plot(label="Torque - time", height=400, width=400):
                 dpg.add_plot_legend()
                 dpg.add_plot_axis(dpg.mvXAxis, label="time")
                 dpg.add_plot_axis(dpg.mvXAxis, label="T", tag="y-axis-T")
                 dpg.add_line_series([], [], tag="T vals",
                                     label="T-time", parent="y-axis-T")
+            dpg.add_button(label="Save plot as image",
+                           callback=lambda: self.save_plot())
             dpg.add_button(label="OK", callback=lambda: dpg.hide_item(
                 item="csv_plot_window"))
 
@@ -355,11 +377,6 @@ class GUI(threading.Thread):
                                       callback=lambda: dpg.show_item("file_dialog_c"))
                     dpg.add_menu_item(label="Open config file",
                                       callback=lambda: dpg.show_item("file_dialog_r"))
-
-                with dpg.menu(label="Edit"):
-                    dpg.add_menu_item(label="Copy")
-                    dpg.add_menu_item(label="Paste")
-                    dpg.add_menu_item(label="Cut")
 
             dpg.add_text(
                 f"Motor configuration file used: {motor_configuration.get_value('config_name')}", tag="current_config_open")
@@ -477,19 +494,21 @@ class GUI(threading.Thread):
                                        callback=lambda: load_parameters(motor_configuration, self.msc_handler))
 
                         with dpg.group(horizontal=True) as plot_params_VT:
-                            dpg.add_button(label="END Acquisition",
+                            dpg.add_button(label="End Acquisition and store to file",
                                            callback=lambda: self.update_csv_buffer())
-                            dpg.add_button(label="Plot CSV",
-                                           callback=lambda: show_csv_window())
-                            # dpg.add_button(label="Plot V-t",
-                            #                callback=lambda: plot_V())
-                            dpg.add_button(label="Plot T-t",
-                                           callback=lambda: plot_T())
-                        with dpg.group(horizontal=True) as plot_params_PI:
-                            dpg.add_button(label="Plot P-t",
-                                           callback=lambda: plot_P())
-                            dpg.add_button(label="Plot I-t",
-                                           callback=lambda: plot_I())
+                        dpg.add_text("Last acquisition file created: ",
+                                     tag="last_acquisition_field")
+                        # dpg.add_button(label="Plot CSV",
+                        #                callback=lambda: show_csv_window())
+                        # dpg.add_button(label="Plot V-t",
+                        #                callback=lambda: plot_V())
+                        #     dpg.add_button(label="Plot T-t",
+                        #                    callback=lambda: self.save_plot())
+                        # with dpg.group(horizontal=True) as plot_params_PI:
+                        #     dpg.add_button(label="Plot P-t",
+                        #                    callback=lambda: plot_P())
+                        #     dpg.add_button(label="Plot I-t",
+                        #                    callback=lambda: plot_I())
                         dpg.add_separator()
 
                         with dpg.group(horizontal=True) as bottom_buttons:
@@ -607,20 +626,32 @@ class GUI(threading.Thread):
         self.master_echo = master_echo
 
     def update_csv_buffer(self):
-        header = ['Sender', 'Time', 'Torque']
-        buffer = StringIO(self.file_buff)
-        reader = csv.reader(buffer, skipinitialspace=True)
-        file_name = f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.csv'
-        file_path = f'csv/{file_name}'
-        dpg.set_value("csv_plot_text", "CSV UPDATED!\n"+file_name)
-        with open(file_path, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(header)
-            writer.writerows(reader)
-        self.plot_handler.read_csv_vals(file_path)
-        dpg.set_value(
-            "T vals", [self.plot_handler.get_xvals(), self.plot_handler.get_yvals()])
-        show_csv_window()
+        if self.file_buff != "":
+            try:
+                header = ['Sender', 'Time', 'Torque',
+                          'Voltage', 'Current', 'Brake']
+                buffer = StringIO(self.file_buff)
+                reader = csv.reader(buffer, skipinitialspace=True)
+                file_name = f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.csv'
+                self.plot_handler.last_plot_name = file_name
+                file_path = f'csv/{file_name}'
+                dpg.set_value("csv_plot_text", "CSV UPDATED!\n"+file_name)
+                with open(file_path, 'w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(header)
+                    writer.writerows(reader)
+                self.plot_handler.read_csv_vals(file_path)
+                print(f"x vals {self.plot_handler.get_xvals()}")
+                print(f"y vals {self.plot_handler.get_torque_vals()}")
+                update_and_show_generic_success_popup(
+                    f"Data stored in: csv/{file_name}")
+                dpg.set_value("last_acquisition_field",
+                              f"Last acquisition file created: {file_name}")
+            except Exception as e:
+                update_and_show_generic_error_popup(e)
+        else:
+            update_and_show_generic_error_popup(
+                "Can't store in a file! No data available")
 
     def add_to_file_buff(self, payload):
         self.file_buff += payload+"\n"
