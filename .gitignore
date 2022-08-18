@@ -135,6 +135,9 @@ dmypy.json
 #Csv files
 *.csv
 
+#Sensor plot folder
+plots/*
+
 #Cube IDE
 # STM32Cube copied library and project folders
 **/Drivers/*
