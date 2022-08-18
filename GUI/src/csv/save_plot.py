@@ -6,7 +6,14 @@ import os
 
 def main():
     print(f"Current path: {os.getcwd()}")
-    file_name = str(sys.argv[1])
+    # If keyword last is detected the last csv file added will be read
+    if str(sys.argv[1]) == "last":
+        files = os.listdir()
+        files.remove(sys.argv[0])
+        files.sort()
+        file_name = (files[-1])
+    else:
+        file_name = str(sys.argv[1])
     df = pd.read_csv(file_name)
     file_name = file_name.replace(".csv", "")
     df = df.dropna()
