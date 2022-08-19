@@ -1,4 +1,3 @@
-from fileinput import filename
 import pandas as pd
 import sys
 import os
@@ -8,52 +7,49 @@ def main():
     print(f"Current path: {os.getcwd()}")
     # If keyword last is detected the last csv file added will be read
     if str(sys.argv[1]) == "last":
+        # Get the list of all the csv file in the directory
         files = os.listdir()
+        # Remove save_plot.py from the list
         files.remove(sys.argv[0])
         files.sort()
         file_name = (files[-1])
+    # Otherwise the file name given will be selected
     else:
         file_name = str(sys.argv[1])
     df = pd.read_csv(file_name)
     file_name = file_name.replace(".csv", "")
     df = df.dropna()
-    # If there isnìt a Power column it will be created
+    # If there isn't a Power column it will be created
     if 'Power' not in df.columns:
         df["Power"] = df["Voltage"] * \
             df["Current"]
+    # Split the directories name in DD_MM_YYYY and HH_MM_SS from the original file name
     directory_name = file_name.split("_")
+    # Check whether plots folder exists, if not one will be created
     if not os.path.exists(f"../plots"):
         print("Creating plots dir")
         os.mkdir(f"../plots")
+    # Check whether plot/directory_name[0] folder exists, if not one will be created
     if not os.path.exists(f"../plots/{directory_name[0]}"):
         os.mkdir(f"../plots/{directory_name[0]}")
         print(f"Creating plots dir based on date {directory_name[0]}")
+    # Check whether plot/directory_name[0]/directory_name[1] folder exists, if not one will be created
     if not os.path.exists(f"../plots/{directory_name[0]}/{directory_name[1]}"):
         os.mkdir(f"../plots/{directory_name[0]}/{directory_name[1]}")
         print(f"Creating plots sub dir based on time {directory_name[1]}")
-
+    # Whether plot/directory_name[0]/directory_name[1] exists it will be selected as current work path
     if os.path.exists(f"../plots/{directory_name[0]}/{directory_name[1]}"):
         os.chdir(f"../plots/{directory_name[0]}")
-
     print(f"Using path: {os.getcwd()}")
+    # Save all sensor values in the same plot (using Time as x-axis)
     df.plot("Time").get_figure().savefig(
         f"{directory_name[1]}/All.pdf")
-
-    if 'Brake' in df.columns:
-        df.plot("Time", "Brake").get_figure().savefig(
-            f"{directory_name[1]}/Brake.pdf")
-    if 'Torque' in df.columns:
-        df.plot("Time", "Torque").get_figure().savefig(
-            f"{directory_name[1]}/Torque.pdf")
-    if 'Voltage' in df.columns:
-        df.plot("Time", "Voltage").get_figure().savefig(
-            f"{directory_name[1]}/Voltage.pdf")
-    if 'Current' in df.columns:
-        df.plot("Time", "Current").get_figure().savefig(
-            f"{directory_name[1]}/Current.pdf")
-    if 'Power' in df.columns:
-        df.plot("Time", "Power").get_figure().savefig(
-            f"{directory_name[1]}/Power.pdf")
+    # Plot and save separate values during Time
+    # eg: Brake.pdf, Current.pdf etc
+    for i in df.columns:
+        if i != "Time" and i != "Sender":
+            df.plot("Time", f"{i}").get_figure().savefig(
+                f"{directory_name[1]}/{i}.pdf")
 
 
 if __name__ == "__main__":
