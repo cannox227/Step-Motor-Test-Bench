@@ -1,7 +1,7 @@
 import json
 
 
-class Motor_Config():
+class Motor_Config:
     def __init__(self):
         self.last_filename = ""
         self.configuration = {}
@@ -20,27 +20,27 @@ class Motor_Config():
         }
 
         self.motorStepMode_t = {
-            "STEP_MODE_FULL": 0,
-            "STEP_MODE_HALF": 1,
-            "STEP_MODE_1_4 ": 2,
-            "STEP_MODE_1_8 ": 3,
-            "STEP_MODE_1_16": 4,
-            "STEP_MODE_1_32": 5,
-            "STEP_MODE_1_64": 6,
-            "STEP_MODE_1_128": 7,
-            "STEP_MODE_1_256": 8,
+            "STEP_MODE_FULL":   0,
+            "STEP_MODE_HALF":   1,
+            "STEP_MODE_1_4 ":   2,
+            "STEP_MODE_1_8 ":   3,
+            "STEP_MODE_1_16":   4,
+            "STEP_MODE_1_32":   5,
+            "STEP_MODE_1_64":   6,
+            "STEP_MODE_1_128":  7,
+            "STEP_MODE_1_256":  8,
             "STEP_MODE_UNKNOW": 254,
-            "STEP_MODE_WAVE": 255
+            "STEP_MODE_WAVE":   255,
         }
 
         self.powerstep01_LspdOpt_t = {
             "POWERSTEP01_LSPD_OPT_OFF": 0,
-            "POWERSTEP01_LSPD_OPT_ON": 4096
+            "POWERSTEP01_LSPD_OPT_ON": 4096,
         }
 
         self.powerstep01_BoostMode_t = {
             "POWERSTEP01_BOOST_MODE": 0,
-            "POWERSTEP01_FS_SPD_MASK": 8192
+            "POWERSTEP01_FS_SPD_MASK": 8192,
         }
 
         POWERSTEP01_TBOOST_SHIFT = 8
@@ -88,12 +88,12 @@ class Motor_Config():
             "POWERSTEP01_TCC_3625ns": (0x1C << POWERSTEP01_TCC_SHIFT),
             "POWERSTEP01_TCC_3750ns": (0x1D << POWERSTEP01_TCC_SHIFT),
             "POWERSTEP01_TCC_3750ns_bis": (0x1E << POWERSTEP01_TCC_SHIFT),
-            "POWERSTEP01_TCC_3750ns_ter": (0x1F << POWERSTEP01_TCC_SHIFT)
+            "POWERSTEP01_TCC_3750ns_ter": (0x1F << POWERSTEP01_TCC_SHIFT),
         }
 
         self.powerstep01_WdEn_t = {
             "POWERSTEP01_WD_EN_DISABLE": (0),
-            "POWERSTEP01_WD_EN_ENABLE": (1 << 11)
+            "POWERSTEP01_WD_EN_ENABLE": (1 << 11),
         }
 
         POWERSTEP01_TBLANK_SHIFT = 5
@@ -140,12 +140,12 @@ class Motor_Config():
             "POWERSTEP01_TDT_3625ns": (0x1C << POWERSTEP01_TDT_SHIFT),
             "POWERSTEP01_TDT_3750ns": (0x1D << POWERSTEP01_TDT_SHIFT),
             "POWERSTEP01_TDT_3875ns": (0x1E << POWERSTEP01_TDT_SHIFT),
-            "POWERSTEP01_TDT_4000ns": (0x1F << POWERSTEP01_TDT_SHIFT)
+            "POWERSTEP01_TDT_4000ns": (0x1F << POWERSTEP01_TDT_SHIFT),
         }
 
         self.powerstep01_CmVm_t = {
             "POWERSTEP01_CM_VM_VOLTAGE": (0x00),
-            "POWERSTEP01_CM_VM_CURRENT": (0x08)
+            "POWERSTEP01_CM_VM_CURRENT": (0x08),
         }
 
         # current structs
@@ -166,14 +166,14 @@ class Motor_Config():
             "POWERSTEP01_TOFF_FAST_26us": (0x0C << POWERSTEP01_TOFF_FAST_SHIFT),
             "POWERSTEP01_TOFF_FAST_28us": (0x0D << POWERSTEP01_TOFF_FAST_SHIFT),
             "POWERSTEP01_TOFF_FAST_30us": (0x0E << POWERSTEP01_TOFF_FAST_SHIFT),
-            "POWERSTEP01_TOFF_FAST_32us": (0x0F << POWERSTEP01_TOFF_FAST_SHIFT)
+            "POWERSTEP01_TOFF_FAST_32us": (0x0F << POWERSTEP01_TOFF_FAST_SHIFT),
         }
         POWERSTEP01_FAST_STEP_SHIFT = 0
         self.powerstep01_FastStep_t = {
-            "POWERSTEP01_FAST_STEP_2us":  (0x00 << POWERSTEP01_FAST_STEP_SHIFT),
-            "POWERSTEP01_FAST_STEP_4us":  (0x01 << POWERSTEP01_FAST_STEP_SHIFT),
-            "POWERSTEP01_FAST_STEP_6us":  (0x02 << POWERSTEP01_FAST_STEP_SHIFT),
-            "POWERSTEP01_FAST_STEP_8us":  (0x03 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_2us": (0x00 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_4us": (0x01 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_6us": (0x02 << POWERSTEP01_FAST_STEP_SHIFT),
+            "POWERSTEP01_FAST_STEP_8us": (0x03 << POWERSTEP01_FAST_STEP_SHIFT),
             "POWERSTEP01_FAST_STEP_10us": (0x04 << POWERSTEP01_FAST_STEP_SHIFT),
             "POWERSTEP01_FAST_STEP_12us": (0x05 << POWERSTEP01_FAST_STEP_SHIFT),
             "POWERSTEP01_FAST_STEP_14us": (0x06 << POWERSTEP01_FAST_STEP_SHIFT),
@@ -185,11 +185,11 @@ class Motor_Config():
             "POWERSTEP01_FAST_STEP_26us": (0x0C << POWERSTEP01_FAST_STEP_SHIFT),
             "POWERSTEP01_FAST_STEP_28us": (0x0D << POWERSTEP01_FAST_STEP_SHIFT),
             "POWERSTEP01_FAST_STEP_30us": (0x0E << POWERSTEP01_FAST_STEP_SHIFT),
-            "POWERSTEP01_FAST_STEP_32us": (0x0F << POWERSTEP01_FAST_STEP_SHIFT)
+            "POWERSTEP01_FAST_STEP_32us": (0x0F << POWERSTEP01_FAST_STEP_SHIFT),
         }
 
     def init_config(self, conf_name):
-        obj = '''
+        obj = """
         {
             "config_name": "configuration_01",
             "acceleration_rate": 0,
@@ -228,9 +228,9 @@ class Motor_Config():
             "thermal_compensation": 0,
             "stall_threshold": 0
         }
-        '''
+        """
         obj = json.loads(obj)
-        obj['config_name'] = conf_name
+        obj["config_name"] = conf_name
         self.configuration = obj
         print(self.configuration)
 
@@ -380,18 +380,22 @@ class Motor_Config():
             return -1
 
     def get_motor_param_type(self, val, id):
-        '''
+        """
         This function returns the type of the parameter
 
         Args:
             val (numeric): output of get_value_by_key function
             id (string): id of the parameter
-        '''
+        """
 
         if val == -1:
             # return float
             return "f"
-        elif id == "clock_wd_enable" or id == "boost_mode_bit" or id == "low_speed_optimization_bit":
+        elif (
+            id == "clock_wd_enable"
+            or id == "boost_mode_bit"
+            or id == "low_speed_optimization_bit"
+        ):
             # return unsigned short -> uint16_t
             return "H"
         else:

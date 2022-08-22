@@ -19,10 +19,10 @@ class CSV_to_Plot_GUI():
                 dpg.add_file_extension(".csv")
 
             dpg.add_text(
-                "Select a csv file and then press convert\nThe image will be stored in the plot folder")
+                "Select a csv file and then press the show button to display the plots")
             dpg.add_text("Selected file: ", tag="selected_file_text")
             dpg.add_text("File preview:", tag="selected_file_preview")
-            dpg.add_button(label="Convert",
+            dpg.add_button(label="Show",
                            callback=lambda: self.convert_to_plot())
 
         # Note for every plot use max 3 y axis (the fourth will be not assigned and with 5 a segmentation fault will occur)

@@ -1,10 +1,7 @@
-from fileinput import filename
 from io import StringIO
-from time import sleep
 from datetime import datetime
 import csv
 import dearpygui.dearpygui as dpg
-import matplotlib.pyplot as plt
 import plot as plot
 import motor_config
 import micro_serial_handler
@@ -530,26 +527,26 @@ class GUI(threading.Thread):
                             # Master selector
                             dpg.add_text("Available devices to be Master")
                             dpg.add_combo(items=self.msc_handler.get_available_devices(),
-                                          tag="master_device_list", callback=devices_selector_callback, user_data=self.msc_handler, width=100)
+                                          tag="master_device_list", callback=devices_selector_callback, user_data=self.msc_handler, width=300)
                             dpg.add_button(label="CONNECT TO MASTER",
                                            callback=lambda: connect_to_device(self.msc_handler, "master"))
                             dpg.add_text("Connection state: NOT CONNECTED",
                                          tag="master_connection_state_text_field")
-                            dpg.add_input_int(label="Automatic test time duration", tag="automatic-test-duration",
+                            dpg.add_input_int(label="Automatic test time duration (s)", tag="automatic-test-duration",
                                               min_clamped=True, max_clamped=True, min_value=5, max_value=60, width=100)
+                            with dpg.group() as automatic_test_section:
+                                dpg.add_button(label="START AUTOMATIC MOTOR TEST",
+                                               callback=lambda: send_generic_command(self.msc_handler, "master", "start_motor"))
                             # dpg.add_button(label="Send hello to master",
                             #                callback=lambda: send_hello(self.msc_handler, "master"))
                             with dpg.group() as master_cmd_input_section:
-                                dpg.add_text("Master Command input")
+                                dpg.add_text("Master custom command input")
                                 dpg.add_input_text(
                                     tag="master_command_input", width=100)
                                 dpg.add_button(label="SEND COMMAND TO MASTER",
                                                callback=lambda: send_command(self.msc_handler, "master"))
-                                dpg.add_button(label="SEND STRUCT TO MASTER",
-                                               callback=lambda: send_struct(self.msc_handler, "master"))
-                            with dpg.group() as automatic_test_section:
-                                dpg.add_button(label="START AUTOMATIC MOTOR TEST",
-                                               callback=lambda: send_generic_command(self.msc_handler, "master", "start_motor"))
+                                # dpg.add_button(label="SEND STRUCT TO MASTER",
+                                #                callback=lambda: send_struct(self.msc_handler, "master"))
                         with dpg.group(horizontal=False) as master_log:
                             dpg.add_text("Master serial display",
                                          color=light_blue)
@@ -559,21 +556,21 @@ class GUI(threading.Thread):
                             # Slave selector
                             dpg.add_text("Available devices to be Slave")
                             dpg.add_combo(items=self.msc_handler.get_available_devices(),
-                                          tag="slave_device_list", callback=devices_selector_callback, user_data=self.msc_handler, width=100)
+                                          tag="slave_device_list", callback=devices_selector_callback, user_data=self.msc_handler, width=300)
                             dpg.add_button(label="CONNECT TO SLAVE",
                                            callback=lambda: connect_to_device(self.msc_handler, "slave"))
                             dpg.add_text("Connection state: NOT CONNECTED",
                                          tag="slave_connection_state_text_field")
-                            dpg.add_button(label="Send hello to slave",
-                                           callback=lambda: send_hello(self.msc_handler, "slave"))
+                            # dpg.add_button(label="Send hello to slave",
+                            #                callback=lambda: send_hello(self.msc_handler, "slave"))
                             with dpg.group() as slave_cmd_input_section:
-                                dpg.add_text("SlaveCommand input")
+                                dpg.add_text("Slave custom command input")
                                 dpg.add_input_text(
                                     tag="slave_command_input", width=100)
                                 dpg.add_button(label="SEND COMMAND TO SLAVE",
                                                callback=lambda: send_command(self.msc_handler, "slave"))
-                                dpg.add_button(label="SEND STRUCT TO SLAVE",
-                                               callback=lambda: send_struct(self.msc_handler, "slave"))
+                                # dpg.add_button(label="SEND STRUCT TO SLAVE",
+                                #                callback=lambda: send_struct(self.msc_handler, "slave"))
                         with dpg.group(horizontal=False) as slave_log:
                             dpg.add_text("Slave serial display",
                                          color=light_blue)
