@@ -15,6 +15,7 @@ light_blue = (0, 153, 255)
 motor_settings_win_pos = (400, 0)
 serial_win_pos = (0, 440)
 MAX_MOTOR_STEP_DIGITS = 6
+MAX_ACQUISITION_TIME_DIGITS = 2
 
 
 def plot_V():
@@ -79,9 +80,15 @@ def load_parameters(motor_conf, msc):
         dpg.show_item("connection_error_dialog")
 
 
-def build_cmd(val):
+def build_movement_cmd(val):
     str_val = str(val)
     zeros = MAX_MOTOR_STEP_DIGITS - len(str_val)
+    return str(("0"*zeros)+str(val))
+
+
+def build_acquisition_cmd(val):
+    str_val = str(val)
+    zeros = MAX_ACQUISITION_TIME_DIGITS - len(str_val)
     return str(("0"*zeros)+str(val))
 
 
@@ -154,9 +161,11 @@ def send_command(msc, device_type):
         if device_type == "master":
             if dpg.get_value("master_command_input") != None or dpg.get_value("master_command_input") != "":
                 msc.send_cmd(dpg.get_value("master_command_input"), "master")
+                print(f'Sent: {dpg.get_value("master_command_input")}')
         elif device_type == "slave":
             if dpg.get_value("slave_command_input") != None or dpg.get_value("slave_command_input") != "":
                 msc.send_cmd(dpg.get_value("slave_command_input"), "slave")
+                print(f'Sent: {dpg.get_value("slave_command_input")}')
     except Exception as e:
         update_and_show_error_popup(e)
 
@@ -164,10 +173,9 @@ def send_command(msc, device_type):
 def send_brake_command(msc, cmd):
     try:
         msc.send_cmd(cmd, "master")
-        pwm_val = msc.read_line("master").decode()
-        print(pwm_val)
-        dpg.set_value(item="pwm_text_field",
-                      value=f"PWM: {float(pwm_val[4:8])*100}%")
+        #pwm_val = msc.read_line("master").decode()
+        # print(pwm_val)
+        # dpg.set_value(item="pwm_text_field",value=f"PWM: {float(pwm_val[4:8])*100}%")
     except Exception as e:
         update_and_show_error_popup(e)
 
@@ -536,7 +544,7 @@ class GUI(threading.Thread):
                                               min_clamped=True, max_clamped=True, min_value=5, max_value=60, width=100)
                             with dpg.group() as automatic_test_section:
                                 dpg.add_button(label="START AUTOMATIC MOTOR TEST",
-                                               callback=lambda: send_generic_command(self.msc_handler, "master", "start_motor"))
+                                               callback=lambda: send_generic_command(self.msc_handler, "master", f"start_motor+{build_acquisition_cmd(dpg.get_value('automatic-test-duration'))}"))
                             # dpg.add_button(label="Send hello to master",
                             #                callback=lambda: send_hello(self.msc_handler, "master"))
                             with dpg.group() as master_cmd_input_section:
@@ -587,11 +595,11 @@ class GUI(threading.Thread):
                                   max_value=999999, width=100, max_clamped=True, min_clamped=True)
                 with dpg.group(horizontal=True) as motor_control_buttons_section_A:
                     dpg.add_button(label="Move forward", callback=lambda: send_generic_command(
-                        self.msc_handler, "slave", "fw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                        self.msc_handler, "slave", "fw+"+build_movement_cmd(dpg.get_value("motor_steps_to_do"))))
                     dpg.add_button(label="Move backward", callback=lambda: send_generic_command(
-                        self.msc_handler, "slave", "bw+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                        self.msc_handler, "slave", "bw+"+build_movement_cmd(dpg.get_value("motor_steps_to_do"))))
                     dpg.add_button(label="Go to position", callback=lambda: send_generic_command(
-                        self.msc_handler, "slave", "gt+"+build_cmd(dpg.get_value("motor_steps_to_do"))))
+                        self.msc_handler, "slave", "gt+"+build_movement_cmd(dpg.get_value("motor_steps_to_do"))))
                 with dpg.group(horizontal=True) as motor_control_buttons_section_B:
                     dpg.add_button(label="Go home", callback=lambda: send_generic_command(
                         self.msc_handler, "slave", "gh+000000"))
@@ -670,10 +678,10 @@ class GUI(threading.Thread):
                     time.sleep(0.02)
             except queue.Empty:
                 #dpg.set_value("slave_serial_display", "DEVICE NOT CONNECTED")
-                print("Slave: Queue empty")
+                #print("Slave: Queue empty")
                 time.sleep(0.25)
             except Exception as e:
-                print(f"Slave: Error in periodic serial listener {e}")
+                #print(f"Slave: Error in periodic serial listener {e}")
                 time.sleep(0.025)
 
     def serial_master_listener_callback(self):
@@ -685,7 +693,12 @@ class GUI(threading.Thread):
                 else:
                     msg = msg.replace("\n", "").replace(
                         "\r", "").replace("", "")
-                    if "[MASTER][RECEIVED]" not in msg and "[MASTER][READING ENDED]" not in msg and "[MASTER][READING STARTED]" not in msg:
+                    if "PWM+" in msg:
+                        # update_and_show_generic_success_popup(msg)
+                        print(f"PWM from master => {msg}")
+                        dpg.set_value("pwm_text_field", msg)
+                        # value=f"PWM: {float(pwm_val[4:8])*100}%")
+                    elif "[MASTER][RECEIVED]" not in msg and "[MASTER][READING ENDED]" not in msg and "[MASTER][READING STARTED]" not in msg:
                         self.file_buff += msg+"\n"
 
                     msg = f'{msg}\n{dpg.get_value("master_serial_display")}'
@@ -696,10 +709,10 @@ class GUI(threading.Thread):
                     time.sleep(0.02)
             except queue.Empty:
                 #dpg.set_value("master_serial_display", "DEVICE NOT CONNECTED")
-                print("Master: Queue empty")
+                #print("Master: Queue empty")
                 time.sleep(0.25)
             except Exception as e:
-                print(f"Master: Error in periodic serial listener {e}")
+                #print(f"Master: Error in periodic serial listener {e}")
                 time.sleep(0.025)
 
     def run(self):

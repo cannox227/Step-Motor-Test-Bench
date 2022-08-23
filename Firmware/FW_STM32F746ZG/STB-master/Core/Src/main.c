@@ -34,6 +34,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -44,9 +45,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define ACQUISITION_TIME_DIGITS  2
 #define CMD_PAYLOAD_LENGHT       100
 #define MAX_CMD_SEND_ATTEMPTS    100
 #define MAX_ACK_DELAY_ALLOWED_MS 200
+#define CMD_CLOSING_CHAR         '\n'
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -96,7 +99,8 @@ stepper_handler stepper;
 uint8_t sendings_attempts_done = 0;
 uint32_t current_tick          = 0;
 uint32_t deadline              = 0;
-
+uint8_t gui_acquisition_time   = 0;
+char gui_acquisition_time_str[ACQUISITION_TIME_DIGITS];
 // ADC variables
 volatile float torque_gpio;
 volatile float board_voltage;
@@ -107,6 +111,7 @@ char adc_out[100];
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+void set_and_go_to_next_state(master_state next_state);
 bool parse_gui_cmd(char *cmd_rx);
 void reset_cmd(uart_rx_handler *uart_handler);
 void update_sensor_values();
@@ -170,7 +175,7 @@ int main(void) {
 
     brake_init(&magnetic_brake);
     brake_set_pwm_duty_cycle(&magnetic_brake, 0.6);
-    //brake_on(&magnetic_brake);
+    brake_on(&magnetic_brake);
 
     ADC_start_DMA_readings();
 
@@ -183,11 +188,15 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        while (1) {
-            update_sensor_values_and_print();
-            HAL_Delay(100);
-        }
-
+        // while (1) {
+        //     HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, 1);
+        //     if (gui_cmd_handler.is_word_complete) {
+        //         parse_gui_cmd(gui_cmd_handler.cmd_received);
+        //         reset_cmd(&gui_cmd_handler);
+        //     }
+        //     // update_sensor_values_and_print();
+        //     // HAL_Delay(100);
+        // }
         /* USER CODE END WHILE */
         // HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, 1);
         // if (gui_cmd_handler.is_word_complete) {
@@ -205,19 +214,16 @@ int main(void) {
                 // Continuous receiving
                 HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, sizeof(char));
                 if (gui_cmd_handler.is_word_complete) {
-                    msm_handler.next_state       = CMD_RECEIVED;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(CMD_RECEIVED);
                 }
                 break;
             case CMD_RECEIVED:
                 if (parse_gui_cmd(gui_cmd_handler.cmd_received) &&
-                    strcmp(gui_cmd_handler.cmd_received, "start_motor\r\n") == 0) {
+                    strstr(gui_cmd_handler.cmd_received, "start_motor+")) {
                     // IDEALLY THE MOTOR RUNS FOREVER
-                    msm_handler.next_state       = SEND_START_MOTOR_CMD;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(SEND_START_MOTOR_CMD);
                 } else {
-                    msm_handler.next_state       = WAITING_FOR_CMD;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(WAITING_FOR_CMD);
                 }
                 reset_cmd(&gui_cmd_handler);
                 break;
@@ -226,12 +232,10 @@ int main(void) {
                     HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)"fw+999999\r\n", sizeof("fw+999999\r\n"), 100);
                     reset_cmd(&slave_cmd_handler);
                     sendings_attempts_done++;
-                    msm_handler.next_state       = GET_MOTOR_ACK_ON_START;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(GET_MOTOR_ACK_ON_START);
                 } else {
-                    msm_handler.next_state       = WAITING_FOR_CMD;
-                    msm_handler.go_to_next_state = true;
-                    sendings_attempts_done       = 0;
+                    set_and_go_to_next_state(WAITING_FOR_CMD);
+                    sendings_attempts_done = 0;
                 }
                 break;
             case GET_MOTOR_ACK_ON_START:
@@ -246,25 +250,24 @@ int main(void) {
                         strcmp(slave_cmd_handler.cmd_received, "start_ack\r\n") == 0) {
                         reset_cmd(&slave_cmd_handler);
                         reset_cmd(&gui_cmd_handler);
-                        msm_handler.next_state       = MOTOR_IS_RUNNING;
-                        msm_handler.go_to_next_state = true;
-                        current_tick                 = deadline;
+                        set_and_go_to_next_state(MOTOR_IS_RUNNING);
+                        current_tick = deadline;
                     } else {
                         current_tick = HAL_GetTick();
                     }
                 }
                 // If timeout has elapsed
                 if (msm_handler.next_state == GET_MOTOR_ACK_ON_START) {
-                    msm_handler.next_state       = SEND_START_MOTOR_CMD;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(SEND_START_MOTOR_CMD);
                 }
                 break;
             case MOTOR_IS_RUNNING:
                 // do stuffs
-                msm_handler.next_state       = SENSORS_READING;
-                msm_handler.go_to_next_state = true;
-                current_tick                 = HAL_GetTick();
-                deadline                     = current_tick + sensor_time;
+                set_and_go_to_next_state(SENSORS_READING);
+                current_tick = HAL_GetTick();
+                // update deadline to acquired time from gui (s) * 1000 in order to obtain ms
+                deadline = current_tick + gui_acquisition_time * 1000;  // sensor_time;
+
                 break;
 
             case SENSORS_READING:
@@ -273,19 +276,16 @@ int main(void) {
                     current_tick = HAL_GetTick();
                 }
                 // do stuffs
-                msm_handler.next_state       = SEND_STOP_MOTOR_CMD;
-                msm_handler.go_to_next_state = true;
+                set_and_go_to_next_state(SEND_STOP_MOTOR_CMD);
                 break;
             case SEND_STOP_MOTOR_CMD:
                 if (sendings_attempts_done < MAX_CMD_SEND_ATTEMPTS) {
                     HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)MOTOR_STOP_FOREVER, sizeof(MOTOR_STOP_FOREVER), 100);
                     reset_cmd(&slave_cmd_handler);
                     sendings_attempts_done++;
-                    msm_handler.next_state       = GET_MOTOR_ACK_ON_STOP;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(GET_MOTOR_ACK_ON_STOP);
                 } else {
-                    msm_handler.next_state       = WAITING_FOR_CMD;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(WAITING_FOR_CMD);
                 }
                 break;
             case GET_MOTOR_ACK_ON_STOP:
@@ -297,24 +297,21 @@ int main(void) {
                         strcmp(slave_cmd_handler.cmd_received, "stop_ack\r\n") == 0) {
                         reset_cmd(&slave_cmd_handler);
                         reset_cmd(&gui_cmd_handler);
-                        msm_handler.next_state       = MOTOR_IS_STOPPED;
-                        msm_handler.go_to_next_state = true;
-                        current_tick                 = deadline;
+                        set_and_go_to_next_state(MOTOR_IS_STOPPED);
+                        current_tick = deadline;
                     } else {
                         current_tick = HAL_GetTick();
                     }
                 }
                 // If timeout has elapsed
                 if (msm_handler.next_state == GET_MOTOR_ACK_ON_STOP) {
-                    msm_handler.next_state       = SEND_STOP_MOTOR_CMD;
-                    msm_handler.go_to_next_state = true;
+                    set_and_go_to_next_state(SEND_STOP_MOTOR_CMD);
                 }
                 break;
             case MOTOR_IS_STOPPED:
                 //turn off transistor
                 HAL_Delay(2000);
-                msm_handler.next_state       = WAITING_FOR_CMD;
-                msm_handler.go_to_next_state = true;
+                set_and_go_to_next_state(WAITING_FOR_CMD);
                 break;
         }
         /* USER CODE BEGIN 3 */
@@ -378,7 +375,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == UART_USB.Instance) {
         gui_cmd_handler.cmd_received[gui_cmd_handler.char_index] = gui_cmd_handler.last_char_received;
         gui_cmd_handler.char_index++;
-        if (gui_cmd_handler.last_char_received == '\n') {
+        if (gui_cmd_handler.last_char_received == '\r') {
             gui_cmd_handler.is_word_complete = true;
         }
     } else if (huart->Instance == UART_SLAVE.Instance) {
@@ -388,6 +385,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
             slave_cmd_handler.is_word_complete = true;
         }
     }
+}
+
+void set_and_go_to_next_state(master_state next_state) {
+    msm_handler.next_state       = next_state;
+    msm_handler.go_to_next_state = true;
 }
 
 void reset_cmd(uart_rx_handler *uart_handler) {
@@ -403,27 +405,34 @@ void send_brake_value_to_gui() {
 }
 bool parse_gui_cmd(char *cmd_rx) {
     bool cmd_is_valid = true;
-    if (strcmp(cmd_rx, "brake+\r\n") == 0) {
+    if (strcmp(cmd_rx, "brake+\r") == 0) {
         if (!magnetic_brake.is_braking) {
             brake_on(&magnetic_brake);
         }
         brake_increase_duty(&magnetic_brake, BRAKE_STEP);
         send_brake_value_to_gui();
-    } else if (strcmp(cmd_rx, "brake-\r\n") == 0) {
+    } else if (strcmp(cmd_rx, "brake-\r") == 0) {
         if (!magnetic_brake.is_braking) {
             brake_on(&magnetic_brake);
         }
         brake_decrease_duty(&magnetic_brake, BRAKE_STEP);
         send_brake_value_to_gui();
-    } else if (strcmp(cmd_rx, "brake_off\r\n") == 0) {
+    } else if (strcmp(cmd_rx, "brake_off\r") == 0) {
         brake_set_pwm_duty_cycle(&magnetic_brake, MIN_ALLOWED_PWM_DUTY);
         brake_off(&magnetic_brake);
         send_brake_value_to_gui();
-    } else if (strcmp(cmd_rx, "brake_on_max\r\n") == 0) {
+    } else if (strcmp(cmd_rx, "brake_on_max\r") == 0) {
         brake_set_pwm_duty_cycle(&magnetic_brake, MAX_ALLOWED_PWM_DUTY);
         brake_on(&magnetic_brake);
         send_brake_value_to_gui();
-    } else if (strcmp(cmd_rx, "start_motor\r\n") == 0) {
+    }
+    // else if (strcmp(cmd_rx, "start_motor\r") == 0) {
+    //     uint8_t x = 0;
+    else if (strstr(cmd_rx, "start_motor+")) {
+        // check whether the substring start_motor has been received
+        strncpy(gui_acquisition_time_str, &cmd_rx[strlen("start_motor+")], ACQUISITION_TIME_DIGITS);
+        gui_acquisition_time = atoi(gui_acquisition_time_str);
+        uint8_t x            = 0;
     } else {
         cmd_is_valid = false;
     }

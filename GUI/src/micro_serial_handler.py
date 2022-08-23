@@ -149,7 +149,7 @@ class Micro_serial_handler(threading.Thread):
             device_type (str): "master" or "slave"
         """
         if device_type == "master" and (self.serial_master_socket is not None or self.serial_master_socket.is_open):
-            self.serial_master_socket.write((cmd + "\r\n").encode('utf-8'))
+            self.serial_master_socket.write((cmd + "\r").encode('utf-8'))
         elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
             self.serial_slave_socket.write((cmd+"\r\n").encode('utf-8'))
         else:
@@ -192,7 +192,8 @@ class Micro_serial_handler(threading.Thread):
             elif device_type == "slave" and (self.serial_slave_socket is not None or self.serial_slave_socket.is_open):
                 return self.serial_slave_socket.readline()
         except Exception as e:
-            print(f"ERROR {e} - {device_type} device not connected!")
+            pass
+            #print(f"ERROR {e} - {device_type} device not connected!")
 
     def slave_echo_callback(self):
         while self.is_running:
@@ -202,7 +203,7 @@ class Micro_serial_handler(threading.Thread):
                 # To display in a correct way on the gui it's necessary to erase those chars
                 slave_tx = slave_tx.decode('utf-8').strip().strip('\x00')
                 self.serial_slave_echo.put(slave_tx)
-            time.sleep(0.01)
+            time.sleep(0.001)
 
     def master_echo_callback(self):
         while self.is_running:
@@ -212,7 +213,7 @@ class Micro_serial_handler(threading.Thread):
                 # To display in a correct way on the gui it's necessary to erase those chars
                 master_tx = master_tx.decode('utf-8').strip().strip('\x00')
                 self.serial_master_echo.put(master_tx)
-            time.sleep(0.01)
+            time.sleep(0.001)
 
     def run(self):
         self.is_running = True
