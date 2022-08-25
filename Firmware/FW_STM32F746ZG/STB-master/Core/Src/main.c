@@ -48,7 +48,7 @@
 #define ACQUISITION_TIME_DIGITS  2
 #define CMD_PAYLOAD_LENGHT       100
 #define MAX_CMD_SEND_ATTEMPTS    100
-#define MAX_ACK_DELAY_ALLOWED_MS 200
+#define MAX_ACK_DELAY_ALLOWED_MS 20
 #define CMD_CLOSING_CHAR         '\n'
 /* USER CODE END PD */
 
@@ -167,7 +167,8 @@ int main(void) {
     MX_TIM2_Init();
     MX_TIM6_Init();
     /* USER CODE BEGIN 2 */
-
+    HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
     // INIT PHASE
     msm_handler.current_state    = INIT;
     msm_handler.next_state       = WAITING_FOR_CMD;
@@ -249,19 +250,21 @@ int main(void) {
                 HAL_NVIC_SystemReset();
                 break;
             case WAITING_FOR_CMD:
-                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_SET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);
                 // Continuous receiving
                 HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, sizeof(char));
                 if (gui_cmd_handler.is_word_complete) {
                     set_and_go_to_next_state(CMD_RECEIVED);
-                    HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
-                }
+                                }
                 break;
             case CMD_RECEIVED:
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_SET);
                 if (parse_gui_cmd(gui_cmd_handler.cmd_received)) {
+                    HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
                     if (strstr(gui_cmd_handler.cmd_received, "start_motor+")) {
                         // IDEALLY THE MOTOR RUNS FOREVER
-                        HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
                         set_and_go_to_next_state(SEND_START_MOTOR_CMD);
                     } else if (strcmp(gui_cmd_handler.cmd_received, "get_acquired_data_chunks\r") == 0) {
                         set_and_go_to_next_state(ASYNC_SENSOR_READING);
@@ -269,6 +272,8 @@ int main(void) {
                 } else {
                     set_and_go_to_next_state(WAITING_FOR_CMD);
                 }
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
                 reset_cmd(&gui_cmd_handler);
                 break;
             case ASYNC_SENSOR_READING:
@@ -280,9 +285,11 @@ int main(void) {
                 set_and_go_to_next_state(WAITING_FOR_CMD);
                 break;
             case SEND_START_MOTOR_CMD:
-                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_SET);
                 if (sendings_attempts_done < MAX_CMD_SEND_ATTEMPTS) {
                     HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)"fw+999999\r\n", sizeof("fw+999999\r\n"), 100);
+                    HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
                     reset_cmd(&slave_cmd_handler);
                     sendings_attempts_done++;
                     set_and_go_to_next_state(GET_MOTOR_ACK_ON_START);
@@ -293,7 +300,8 @@ int main(void) {
                 break;
             case GET_MOTOR_ACK_ON_START:
                 current_tick = HAL_GetTick();
-                deadline     = current_tick + 10 * MAX_ACK_DELAY_ALLOWED_MS;
+                deadline     = current_tick + MAX_ACK_DELAY_ALLOWED_MS;
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);
                 while (current_tick < deadline) {
                     // set zerto torque value
                     //measured_zero_torque_value = ADC_get_torque_to_gpio_level()*;
@@ -301,10 +309,10 @@ int main(void) {
                     HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&slave_cmd_handler.last_char_received, sizeof(char));
                     if (slave_cmd_handler.is_word_complete &&
                         strcmp(slave_cmd_handler.cmd_received, "start_ack\r\n") == 0) {
-                        HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
                         reset_cmd(&slave_cmd_handler);
                         reset_cmd(&gui_cmd_handler);
                         set_and_go_to_next_state(MOTOR_IS_RUNNING);
+                        HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
                         current_tick = deadline;
                     } else {
                         current_tick = HAL_GetTick();
@@ -342,8 +350,11 @@ int main(void) {
                 set_and_go_to_next_state(SEND_STOP_MOTOR_CMD);
                 break;
             case SEND_STOP_MOTOR_CMD:
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_SET);
                 if (sendings_attempts_done < MAX_CMD_SEND_ATTEMPTS) {
                     HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)MOTOR_STOP_FOREVER, sizeof(MOTOR_STOP_FOREVER), 100);
+                    HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
                     reset_cmd(&slave_cmd_handler);
                     sendings_attempts_done++;
                     set_and_go_to_next_state(GET_MOTOR_ACK_ON_STOP);
@@ -352,8 +363,10 @@ int main(void) {
                 }
                 break;
             case GET_MOTOR_ACK_ON_STOP:
+
                 current_tick = HAL_GetTick();
-                deadline     = current_tick + 10 * MAX_ACK_DELAY_ALLOWED_MS;
+                deadline     = current_tick + MAX_ACK_DELAY_ALLOWED_MS;
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);
                 while (current_tick < deadline) {
                     HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&slave_cmd_handler.last_char_received, sizeof(char));
                     if (slave_cmd_handler.is_word_complete &&
@@ -361,6 +374,7 @@ int main(void) {
                         reset_cmd(&slave_cmd_handler);
                         reset_cmd(&gui_cmd_handler);
                         set_and_go_to_next_state(MOTOR_IS_STOPPED);
+                        HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
                         current_tick = deadline;
                     } else {
                         current_tick = HAL_GetTick();
