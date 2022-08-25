@@ -78,6 +78,7 @@ typedef enum {
     GET_MOTOR_ACK_ON_START,
     MOTOR_IS_RUNNING,
     SENSORS_READING,
+    ASYNC_SENSOR_READING,
     SEND_STOP_MOTOR_CMD,
     GET_MOTOR_ACK_ON_STOP,
     MOTOR_IS_STOPPED
@@ -103,6 +104,7 @@ uint8_t gui_acquisition_time   = 0;
 char gui_acquisition_time_str[ACQUISITION_TIME_DIGITS];
 float brake_single_step_period = 0.0;
 bool is_brake_at_max_value     = false;
+bool do_async_sensor_reading   = false;
 // ADC variables
 volatile float torque_gpio;
 volatile float board_voltage;
@@ -247,23 +249,38 @@ int main(void) {
                 HAL_NVIC_SystemReset();
                 break;
             case WAITING_FOR_CMD:
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_SET);
                 // Continuous receiving
                 HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, sizeof(char));
                 if (gui_cmd_handler.is_word_complete) {
                     set_and_go_to_next_state(CMD_RECEIVED);
+                    HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
                 }
                 break;
             case CMD_RECEIVED:
-                if (parse_gui_cmd(gui_cmd_handler.cmd_received) &&
-                    strstr(gui_cmd_handler.cmd_received, "start_motor+")) {
-                    // IDEALLY THE MOTOR RUNS FOREVER
-                    set_and_go_to_next_state(SEND_START_MOTOR_CMD);
+                if (parse_gui_cmd(gui_cmd_handler.cmd_received)) {
+                    if (strstr(gui_cmd_handler.cmd_received, "start_motor+")) {
+                        // IDEALLY THE MOTOR RUNS FOREVER
+                        HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
+                        set_and_go_to_next_state(SEND_START_MOTOR_CMD);
+                    } else if (strcmp(gui_cmd_handler.cmd_received, "get_acquired_data_chunks\r") == 0) {
+                        set_and_go_to_next_state(ASYNC_SENSOR_READING);
+                    }
                 } else {
                     set_and_go_to_next_state(WAITING_FOR_CMD);
                 }
                 reset_cmd(&gui_cmd_handler);
                 break;
+            case ASYNC_SENSOR_READING:
+                reset_cmd(&gui_cmd_handler);
+                // Continuous receiving and sensor reading
+                for (uint8_t i = 0; i < 7; i++) {
+                    update_sensor_values_and_print();
+                }
+                set_and_go_to_next_state(WAITING_FOR_CMD);
+                break;
             case SEND_START_MOTOR_CMD:
+                HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);
                 if (sendings_attempts_done < MAX_CMD_SEND_ATTEMPTS) {
                     HAL_UART_Transmit(&UART_SLAVE, (uint8_t *)"fw+999999\r\n", sizeof("fw+999999\r\n"), 100);
                     reset_cmd(&slave_cmd_handler);
@@ -284,6 +301,7 @@ int main(void) {
                     HAL_UART_Receive_IT(&UART_SLAVE, (uint8_t *)&slave_cmd_handler.last_char_received, sizeof(char));
                     if (slave_cmd_handler.is_word_complete &&
                         strcmp(slave_cmd_handler.cmd_received, "start_ack\r\n") == 0) {
+                        HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
                         reset_cmd(&slave_cmd_handler);
                         reset_cmd(&gui_cmd_handler);
                         set_and_go_to_next_state(MOTOR_IS_RUNNING);
@@ -479,7 +497,13 @@ bool parse_gui_cmd(char *cmd_rx) {
         gui_acquisition_time = atoi(gui_acquisition_time_str);
         uint8_t x            = 0;
         //is_sampling          = true;
-    } else {
+    } else if (strcmp(cmd_rx, "get_acquired_data_chunks\r") == 0) {
+        do_async_sensor_reading = true;
+    }
+    // else if (strcmp(cmd_rx, "stop_async_reading\r") == 0) {
+    //     do_async_sensor_reading = false;
+    // }
+    else {
         cmd_is_valid = false;
     }
     return cmd_is_valid;

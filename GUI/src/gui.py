@@ -622,6 +622,11 @@ class GUI(threading.Thread):
                             label="Brake MAX", callback=lambda: send_brake_command(self.msc_handler, "brake_on_max"))
                         dpg.add_button(
                             label="Brake OFF", callback=lambda: send_brake_command(self.msc_handler, "brake_off"))
+            with dpg.group() as async_reading_panel:
+                dpg.add_text("Sensor acquisition control", color=light_blue)
+                with dpg.group(horizontal=True) as acquisition_subpanel_A:
+                    dpg.add_button(
+                        label="Print 3 acquired samples", callback=lambda: send_generic_command(self.msc_handler, "master", "get_acquired_data_chunks"))
 
         # Update gui with parameters
         update_gui(motor_configuration)
