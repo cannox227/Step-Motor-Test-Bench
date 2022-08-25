@@ -21,7 +21,18 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
+#include "timer_utils.h"
 
+// Measured voltage value corresponding to zero torque [Nm]
+float measured_zero_torque_value;
+// Measured voltage value corresponding to current [A]
+float measured_zero_current_value;
+
+// Arrays where the ADC readings are stored
+
+uint16_t current_buff[ADC1_CONVERSIONS] = {};
+uint16_t torque_buff[ADC1_CONVERSIONS]  = {};
+uint16_t voltage_buff[ADC1_CONVERSIONS] = {};
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -329,11 +340,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
     /* ADC1 interrupt Deinit */
   /* USER CODE BEGIN ADC1:ADC_IRQn disable */
-    /**
+        /**
     * Uncomment the line below to disable the "ADC_IRQn" interrupt
     * Be aware, disabling shared interrupt may affect other IPs
     */
-    /* HAL_NVIC_DisableIRQ(ADC_IRQn); */
+        /* HAL_NVIC_DisableIRQ(ADC_IRQn); */
   /* USER CODE END ADC1:ADC_IRQn disable */
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
@@ -358,11 +369,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
     /* ADC2 interrupt Deinit */
   /* USER CODE BEGIN ADC2:ADC_IRQn disable */
-    /**
+        /**
     * Uncomment the line below to disable the "ADC_IRQn" interrupt
     * Be aware, disabling shared interrupt may affect other IPs
     */
-    /* HAL_NVIC_DisableIRQ(ADC_IRQn); */
+        /* HAL_NVIC_DisableIRQ(ADC_IRQn); */
   /* USER CODE END ADC2:ADC_IRQn disable */
 
   /* USER CODE BEGIN ADC2_MspDeInit 1 */
@@ -387,11 +398,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
     /* ADC3 interrupt Deinit */
   /* USER CODE BEGIN ADC3:ADC_IRQn disable */
-    /**
+        /**
     * Uncomment the line below to disable the "ADC_IRQn" interrupt
     * Be aware, disabling shared interrupt may affect other IPs
     */
-    /* HAL_NVIC_DisableIRQ(ADC_IRQn); */
+        /* HAL_NVIC_DisableIRQ(ADC_IRQn); */
   /* USER CODE END ADC3:ADC_IRQn disable */
 
   /* USER CODE BEGIN ADC3_MspDeInit 1 */
@@ -401,5 +412,155 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void ADC_Calibration() {
+// Instead of H7 boards, F746ZG does not have ADC calibration,
+#ifdef H7_BOARD
+    if (HAL_ADCEx_Calibration_Start(&ADC_CURRENT) != HAL_OK) {
+        Error_Handler();
+    }
+    if (HAL_ADCEx_Calibration_Start(&ADC_TORQUE) != HAL_OK) {
+        Error_Handler();
+    }
+    if (HAL_ADCEx_Calibration_Start(&ADC_VOLTAGE) != HAL_OK) {
+        Error_Handler();
+    }
+#endif
+}
+
+void ADC_start_DMA_readings() {
+    if (HAL_ADC_Start_DMA(&ADC_CURRENT, (uint32_t *)current_buff, ADC1_CONVERSIONS) != HAL_OK) {
+        Error_Handler();
+    }
+    if (HAL_ADC_Start_DMA(&ADC_TORQUE, (uint32_t *)torque_buff, ADC2_CONVERSIONS) != HAL_OK) {
+        Error_Handler();
+    }
+    if (HAL_ADC_Start_DMA(&ADC_VOLTAGE, (uint32_t *)voltage_buff, ADC3_CONVERSIONS)) {
+        Error_Handler();
+    }
+
+    // status                            = HAL_ADC_Start_DMA(&ADC_TORQUE, (uint32_t *)torque_buff, ADC2_CONVERSIONS);
+    // status                            = HAL_ADC_Start_DMA(&ADC_VOLTAGE, (uint32_t *)voltage_buff, ADC3_CONVERSIONS);
+
+    //PWM start DMA peripheral to memory transfer
+    HAL_TIM_PWM_Start_IT(&TIMER_ADC_TRIGGER_CONVERSIONS, TIMER_ADC_CHANNEL_CURRENT_TRIGGER);
+    HAL_TIM_PWM_Start_IT(&TIMER_ADC_TRIGGER_CONVERSIONS, TIMER_ADC_CHANNEL_TORQUE_TRIGGER);
+    HAL_TIM_PWM_Start_IT(&TIMER_ADC_TRIGGER_CONVERSIONS, TIMER_ADC_CHANNEL_VOLTAGE_TRIGGER);
+}
+
+/**
+ * @brief Return raw ADC value of current sensor
+ * 
+ * @return uint16_t 
+ */
+uint16_t ADC_get_current_raw() {
+    uint32_t result = 0;
+    for (uint32_t i = 0; i < ADC1_CONVERSIONS; i++) {
+        result += current_buff[i];
+    }
+    return (uint16_t)(result / ADC1_CONVERSIONS);
+}
+
+/**
+ * @brief Return ADC current sensor converted from raw to GPIO level (max 3.3V)
+ * 
+ * @return float 
+ */
+float ADC_get_current_to_gpio_level() {
+    uint16_t raw_val = ADC_get_current_raw();
+    //raw val : 4095 = v : 3.3
+    return (float)(raw_val * GPIO_MAX_VOLTAGE / ADC_MAX_RESOLUTION);
+}
+
+/**
+ * @brief Return current sensor in A
+ * 
+ * @return float current (A)
+ */
+float ADC_get_current_converted() {
+#define HARDCODED_CURRENT_OFFSET 1
+#ifdef HARDCODED_CURRENT_OFFSET
+    float gpio_val = ADC_get_current_to_gpio_level() - CURRENT_SENSOR_OFFSET;
+#endif
+#ifdef REAL_MEASUREMENT_CURRENT_OFFSET
+    float gpio_val = ADC_get_current_to_gpio_level() - measured_zero_current_value;
+#endif
+    float current_A = (gpio_val / LEM_CAS_6_NP_THEORETICAL_SENSITIVITY) * 1000 * CURRENT_DIVIDER_FACTOR;
+    return current_A;
+}
+
+/**
+ * @brief Return raw ADC value of torque sensor
+ * 
+ * @return uint16_t 
+ */
+uint16_t ADC_get_torque_raw() {
+    uint32_t result = 0;
+    for (uint32_t i = 0; i < ADC2_CONVERSIONS; i++) {
+        result += torque_buff[i];
+    }
+    return (uint16_t)(result / ADC2_CONVERSIONS);
+}
+
+/**
+ * @brief Return ADC torque sensor converted from raw to GPIO level (max 3.3V)
+ * 
+ * @return float 
+ */
+float ADC_get_torque_to_gpio_level() {
+    uint16_t raw_val = ADC_get_torque_raw();
+    //raw val : 4095 = v : 3.3
+    return (float)(raw_val * GPIO_MAX_VOLTAGE / ADC_MAX_RESOLUTION);
+}
+
+/**
+ * @brief Return raw ADC value of STB supply voltage
+ * 
+ * @return uint16_t 
+ */
+uint16_t ADC_get_voltage_raw() {
+    uint32_t result = 0;
+    for (uint32_t i = 0; i < ADC3_CONVERSIONS; i++) {
+        result += voltage_buff[i];
+    }
+    return (uint16_t)(result / ADC3_CONVERSIONS);
+}
+
+/**
+ * @brief Return ADC value of STB supply voltage converted from raw to GPIO level (max 3.3V)
+ * 
+ * @return float 
+ */
+float ADC_get_voltage_to_gpio_level() {
+    uint16_t raw_val = ADC_get_voltage_raw();
+    //raw val : 4095 = v : 3.3
+    return (float)(raw_val * GPIO_MAX_VOLTAGE / ADC_MAX_RESOLUTION);
+}
+/**
+ * @brief Return value of STB supply voltage converted from GPIO level to max power supply (24V)
+ * 
+ * @return float 
+ */
+float ADC_get_voltage_converted() {
+    volatile float raw_val = ADC_get_voltage_to_gpio_level();
+    // raw_val : 3.3 = x : 24
+    return (float)(raw_val * MAX_STEPPER_SUPPLY / GPIO_MAX_VOLTAGE_MEASURED_FROM_VOLTAGE_SENSOR);
+}
+/**
+ * @brief Return value of torque sensor converted in Nm 
+ * 
+ * @return float 
+ */
+float ADC_get_torque_converted() {
+#define HARDCODED_TORQUE_OFFSET 1
+    float raw_val = ADC_get_torque_to_gpio_level();
+#ifdef HARDCODED_TORQUE_OFFSET
+    return ((raw_val * TORQUE_DIVIDER_FACTOR) - TORQUE_ZERO_IN_VOLTS) /
+           (SLOPE_TORQUE_SENSOR / 1000);  // [V]/[mV/Nm]/1000 -> Nm
+#endif
+#ifdef REAL_MEASUREMENT_TORQUE_OFFSET
+    return ((raw_val * TORQUE_DIVIDER_FACTOR) - measured_zero_torque_value) /
+           (SLOPE_TORQUE_SENSOR / 1000);  // [V]/[mV/Nm]/1000 -> Nm
+#endif
+}
 
 /* USER CODE END 1 */

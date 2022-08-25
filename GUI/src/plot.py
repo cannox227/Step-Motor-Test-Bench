@@ -26,6 +26,10 @@ class Plot_Visualizer():
         self.pd_handler = pd.read_csv(filename)
         # Remove null values
         self.pd_handler = self.pd_handler.dropna()
+        initial_time = self.pd_handler.iloc[0]['Time']
+        # if time is relative then convert to absolute
+        if initial_time != 0:
+            self.pd_handler['Time'] -= self.pd_handler.iloc[0]['Time']
         # If there isnìt a Power column it can be created
         if 'Power' not in self.pd_handler.columns:
             self.pd_handler["Power"] = self.pd_handler["Voltage"] * \
@@ -68,6 +72,30 @@ class Plot_Visualizer():
 
     def get_power_vals(self):
         return self.power_vals
+
+    def get_torque_max(self):
+        return self.pd_handler['Torque'].max()
+
+    def get_torque_min(self):
+        return self.pd_handler['Torque'].min()
+
+    def get_voltage_max(self):
+        return self.pd_handler['Voltage'].max()
+
+    def get_voltage_min(self):
+        return self.pd_handler['Voltage'].min()
+
+    def get_current_max(self):
+        return self.pd_handler['Current'].max()
+
+    def get_current_min(self):
+        return self.pd_handler['Current'].min()
+
+    def get_power_max(self):
+        return self.pd_handler['Power'].max()
+
+    def get_power_min(self):
+        return self.pd_handler['Power'].min()
 
     # def print_vals(self):
     #     print(f"xvals: {self.xvals} \nyvals: {self.yvals}")

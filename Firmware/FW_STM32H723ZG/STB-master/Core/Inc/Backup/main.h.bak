@@ -58,8 +58,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
+#define BLUE_BUTTON_Pin GPIO_PIN_13
+#define BLUE_BUTTON_GPIO_Port GPIOC
+#define BLUE_BUTTON_EXTI_IRQn EXTI15_10_IRQn
 #define LED1_Pin GPIO_PIN_7
 #define LED1_GPIO_Port GPIOF
 #define LED2_Pin GPIO_PIN_9
@@ -135,6 +136,8 @@ void Error_Handler(void);
 #define DMA_CURRENT                       hdma_adc1
 #define DMA_TORQUE                        hdma_adc2
 #define DMA_VOLTAGE                       hdma_adc3
+
+#define MAX_STEPPER_SUPPLY 24
 
 /* USER CODE END Private defines */
 

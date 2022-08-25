@@ -101,11 +101,15 @@ uint32_t current_tick          = 0;
 uint32_t deadline              = 0;
 uint8_t gui_acquisition_time   = 0;
 char gui_acquisition_time_str[ACQUISITION_TIME_DIGITS];
+float brake_single_step_period = 0.0;
+bool is_brake_at_max_value     = false;
 // ADC variables
 volatile float torque_gpio;
 volatile float board_voltage;
 volatile float stepper_current;
 char adc_out[100];
+
+//bool is_sampling = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -158,6 +162,8 @@ int main(void) {
     MX_TIM3_Init();
     MX_USART3_UART_Init();
     MX_USART6_UART_Init();
+    MX_TIM2_Init();
+    MX_TIM6_Init();
     /* USER CODE BEGIN 2 */
 
     // INIT PHASE
@@ -174,7 +180,7 @@ int main(void) {
     memset(adc_out, 0x00, sizeof(adc_out));
 
     brake_init(&magnetic_brake);
-    brake_set_pwm_duty_cycle(&magnetic_brake, 0.6);
+    brake_set_pwm_duty_cycle(&magnetic_brake, 0.0);
     brake_on(&magnetic_brake);
 
     ADC_start_DMA_readings();
@@ -189,20 +195,50 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         // while (1) {
+        // while (1) {
         //     HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, 1);
         //     if (gui_cmd_handler.is_word_complete) {
         //         parse_gui_cmd(gui_cmd_handler.cmd_received);
         //         reset_cmd(&gui_cmd_handler);
         //     }
+        //     if (is_sampling) {
+        //         brake_single_step_period = gui_acquisition_time / TOTAL_PWM_BRAKE_STEPS;
+        //         brake_set_pwm_duty_cycle(&magnetic_brake, 0.0);
+        //         brake_set_and_start_step_timer((uint32_t)brake_single_step_period * 1000);
+        //         is_sampling = false;
+        //     }
+        //     if (magnetic_brake.is_top_limit_reached) {
+        //         brake_stop_step_timer();
+        //         magnetic_brake.is_top_limit_reached = false;
+        //     }
+        // }
         //     // update_sensor_values_and_print();
         //     // HAL_Delay(100);
         // }
         /* USER CODE END WHILE */
-        // HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, 1);
-        // if (gui_cmd_handler.is_word_complete) {
-        //     parse_gui_cmd(gui_cmd_handler.cmd_received);
-        //     reset_cmd(&gui_cmd_handler);
+
+        /* USER CODE BEGIN 3 */
+        // while (1) {
+        //     HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, 1);
+        //     if (gui_cmd_handler.is_word_complete) {
+        //         parse_gui_cmd(gui_cmd_handler.cmd_received);
+        //         reset_cmd(&gui_cmd_handler);
+        //     }
+        //     if (is_sampling) {
+        //         brake_single_step_period = gui_acquisition_time / TOTAL_PWM_BRAKE_STEPS;
+        //         brake_set_pwm_duty_cycle(&magnetic_brake, 0.0);
+        //         brake_set_and_start_step_timer((uint32_t)brake_single_step_period * 1000);
+        //         is_sampling = false;
+        //     }
+        //     if (magnetic_brake.is_top_limit_reached) {
+        //         brake_stop_step_timer();
+        //         magnetic_brake.is_top_limit_reached = false;
+        //     }
         // }
+        //     // update_sensor_values_and_print();
+        //     // HAL_Delay(100);
+        // }
+        /* USER CODE END WHILE */
         if (msm_handler.go_to_next_state) {
             msm_handler.current_state = msm_handler.next_state;
         }
@@ -266,15 +302,24 @@ int main(void) {
                 set_and_go_to_next_state(SENSORS_READING);
                 current_tick = HAL_GetTick();
                 // update deadline to acquired time from gui (s) * 1000 in order to obtain ms
-                deadline = current_tick + gui_acquisition_time * 1000;  // sensor_time;
-
+                deadline                 = current_tick + gui_acquisition_time * 1000;  // sensor_time;
+                brake_single_step_period = ((float)gui_acquisition_time) / TOTAL_PWM_BRAKE_STEPS;
+                brake_set_pwm_duty_cycle(&magnetic_brake, 0.0);
+                brake_set_and_start_step_timer((uint32_t)(brake_single_step_period * 1000));
                 break;
 
             case SENSORS_READING:
-                while (current_tick < deadline) {
+                while (!magnetic_brake.is_top_limit_reached) {
                     update_sensor_values_and_print();
-                    current_tick = HAL_GetTick();
                 }
+                brake_stop_step_timer();
+                brake_set_pwm_duty_cycle(&magnetic_brake, 0.0);
+                magnetic_brake.is_top_limit_reached = false;
+
+                // while (current_tick < deadline) {
+                //     update_sensor_values_and_print();
+                //     current_tick = HAL_GetTick();
+                // }
                 // do stuffs
                 set_and_go_to_next_state(SEND_STOP_MOTOR_CMD);
                 break;
@@ -314,7 +359,6 @@ int main(void) {
                 set_and_go_to_next_state(WAITING_FOR_CMD);
                 break;
         }
-        /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
 }
@@ -398,10 +442,11 @@ void reset_cmd(uart_rx_handler *uart_handler) {
     uart_handler->is_word_complete = false;
 }
 void send_brake_value_to_gui() {
-    char gui_output[12];
+    char gui_output[15];
+    uint8_t len = 0;
     memset(gui_output, 0x00, sizeof(gui_output));
-    sprintf(gui_output, "PWM+%.2f\r\n", magnetic_brake.pwm_duty_cycle);
-    HAL_UART_Transmit(&UART_USB, (uint8_t *)gui_output, sizeof(gui_output), 100);
+    len = sprintf(gui_output, "PWM+%.2f\r\n", magnetic_brake.pwm_duty_cycle);
+    HAL_UART_Transmit(&UART_USB, (uint8_t *)gui_output, len, 100);
 }
 bool parse_gui_cmd(char *cmd_rx) {
     bool cmd_is_valid = true;
@@ -433,6 +478,7 @@ bool parse_gui_cmd(char *cmd_rx) {
         strncpy(gui_acquisition_time_str, &cmd_rx[strlen("start_motor+")], ACQUISITION_TIME_DIGITS);
         gui_acquisition_time = atoi(gui_acquisition_time_str);
         uint8_t x            = 0;
+        //is_sampling          = true;
     } else {
         cmd_is_valid = false;
     }
@@ -458,13 +504,20 @@ void update_sensor_values_and_print() {
     torque_gpio     = ADC_get_torque_converted();   // ADC_get_torque_to_gpio_level();
     board_voltage   = ADC_get_voltage_converted();  // ADC_get_voltage_to_gpio_level();
     stepper_current = ADC_get_current_converted();  // ADC_get_current_to_gpio_level();
-#define DEBUG_PRINT 1
+#define MEASUREMENT_PRINT 1
 #ifdef DEBUG_PRINT
     sprintf(
         adc_out, "Current: %.4f A | STB supply: %.4f V | Trq: %.4f \r\n", stepper_current, board_voltage, torque_gpio);
 #endif
 #ifdef MEASUREMENT_PRINT
-    sprintf(adc_out, "[MASTER]],%.4f, %.4f,%.4f\r\n", stepper_current, board_voltage, torque_gpio);
+    sprintf(
+        adc_out,
+        "[MASTER],%lu,%.4f, %.4f,%.4f, %.2f\r\n",
+        HAL_GetTick() / 10,
+        torque_gpio,
+        board_voltage,
+        stepper_current,
+        magnetic_brake.pwm_duty_cycle * 100);
 #endif
     HAL_UART_Transmit(&UART_USB, (uint8_t *)adc_out, sizeof(adc_out), 100);
 }

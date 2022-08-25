@@ -49,6 +49,7 @@ void ADC_Calibration();
 void ADC_start_DMA_readings();
 uint16_t ADC_get_current_raw();
 float ADC_get_current_to_gpio_level();
+float ADC_get_current_converted();
 uint16_t ADC_get_torque_raw();
 float ADC_get_torque_to_gpio_level();
 uint16_t ADC_get_voltage_raw();

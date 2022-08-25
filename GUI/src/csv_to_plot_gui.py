@@ -25,6 +25,15 @@ class CSV_to_Plot_GUI():
             dpg.add_button(label="Show",
                            callback=lambda: self.convert_to_plot())
 
+            dpg.add_separator()
+            dpg.add_text(
+                "Torque max value: 0 [Nm]", tag="torque_max_value_field")
+            dpg.add_text(
+                "Voltage max value: 0 [V]", tag="voltage_max_value_field")
+            dpg.add_text(
+                "Current max value: 0 [A]", tag="current_max_value_field")
+            dpg.add_text("Power max value: 0 [W]", tag="power_max_value_field")
+
         # Note for every plot use max 3 y axis (the fourth will be not assigned and with 5 a segmentation fault will occur)
         with dpg.window(label="CSV to image plot converter", tag="plot_window_0", pos=(400, 0), show=False,  width=400, height=400):
 
@@ -35,17 +44,17 @@ class CSV_to_Plot_GUI():
                 dpg.add_plot_axis(dpg.mvXAxis, label="Time")
 
                 # create y axis 1: Torque
-                dpg.add_plot_axis(dpg.mvYAxis, label="Torque")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Torque [Nm]")
                 dpg.add_line_series((), (), label="Torque",
                                     parent=dpg.last_item(), tag="data_torque_0")
 
                 # # create y axis 2: Current
-                dpg.add_plot_axis(dpg.mvYAxis, label="Current")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Current [A]")
                 dpg.add_line_series((), (), label="Current",
                                     parent=dpg.last_item(), tag="data_current")
 
                 # # create y axis 3: Voltage
-                dpg.add_plot_axis(dpg.mvYAxis, label="Voltage")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Voltage [V]")
                 dpg.add_line_series((), (), label="Voltage",
                                     parent=dpg.last_item(), tag="data_voltage")
 
@@ -59,17 +68,17 @@ class CSV_to_Plot_GUI():
                 dpg.add_plot_axis(dpg.mvXAxis, label="Time")
 
                 # create y axis 1: Torque
-                dpg.add_plot_axis(dpg.mvYAxis, label="Torque")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Torque [Nm]")
                 dpg.add_line_series((), (), label="Torque",
                                     parent=dpg.last_item(), tag="data_torque_1")
 
                 # create y axis 4: Brake
-                dpg.add_plot_axis(dpg.mvYAxis, label="Brake")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Brake [%]")
                 dpg.add_line_series((), (), label="Brake",
                                     parent=dpg.last_item(), tag="data_brake")
 
                 # create y axis 5: Power
-                dpg.add_plot_axis(dpg.mvYAxis, label="Power")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Power [W]")
                 dpg.add_line_series((), (), label="Power",
                                     parent=dpg.last_item(), tag="data_power")
 
@@ -88,8 +97,17 @@ class CSV_to_Plot_GUI():
                       f"Selected file: : {self.last_plot_name}")
         dpg.set_value("selected_file_preview",
                       f"File preview:\n{self.plot_handler.get_csv_head()}\n...\n{self.plot_handler.get_csv_tail()}")
+        dpg.set_value("torque_max_value_field",
+                      f"Torque max value: {self.plot_handler.get_torque_max()} [Nm]")
+        dpg.set_value("voltage_max_value_field",
+                      f"Voltage max value: {self.plot_handler.get_voltage_max()} [V]")
+        dpg.set_value("current_max_value_field",
+                      f"Current max value: {self.plot_handler.get_current_max()} [A]")
+        dpg.set_value("power_max_value_field",
+                      f"Power max value: {self.plot_handler.get_power_max()} [W]")
 
     def convert_to_plot(self):
+
         dpg.set_value("data_torque_0", [
                       self.plot_handler.get_xvals(), self.plot_handler.get_torque_vals()])
         dpg.set_value("data_torque_1", [

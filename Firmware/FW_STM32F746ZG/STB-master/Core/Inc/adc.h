@@ -106,3 +106,4 @@ float ADC_get_voltage_converted();
 #endif
 
 #endif /* __ADC_H__ */
+

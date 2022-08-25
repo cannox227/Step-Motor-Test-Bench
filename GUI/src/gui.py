@@ -173,7 +173,7 @@ def send_command(msc, device_type):
 def send_brake_command(msc, cmd):
     try:
         msc.send_cmd(cmd, "master")
-        #pwm_val = msc.read_line("master").decode()
+        # pwm_val = msc.read_line("master").decode()
         # print(pwm_val)
         # dpg.set_value(item="pwm_text_field",value=f"PWM: {float(pwm_val[4:8])*100}%")
     except Exception as e:
@@ -675,14 +675,14 @@ class GUI(threading.Thread):
                         dpg.set_value("slave_serial_display", f"{msg}")
                     except Exception as e:
                         print(e)
-                    time.sleep(0.02)
+                    time.sleep(0.05)
             except queue.Empty:
-                #dpg.set_value("slave_serial_display", "DEVICE NOT CONNECTED")
-                #print("Slave: Queue empty")
-                time.sleep(0.25)
+                # dpg.set_value("slave_serial_display", "DEVICE NOT CONNECTED")
+                # print("Slave: Queue empty")
+                time.sleep(0.05)
             except Exception as e:
-                #print(f"Slave: Error in periodic serial listener {e}")
-                time.sleep(0.025)
+                # print(f"Slave: Error in periodic serial listener {e}")
+                time.sleep(0.05)
 
     def serial_master_listener_callback(self):
         while self.running:
@@ -696,8 +696,8 @@ class GUI(threading.Thread):
                     if "PWM+" in msg:
                         # update_and_show_generic_success_popup(msg)
                         print(f"PWM from master => {msg}")
-                        dpg.set_value("pwm_text_field", msg)
-                        # value=f"PWM: {float(pwm_val[4:8])*100}%")
+                        value = (f"PWM: {float(msg[4:8])*100}%")
+                        dpg.set_value("pwm_text_field", value)
                     elif "[MASTER][RECEIVED]" not in msg and "[MASTER][READING ENDED]" not in msg and "[MASTER][READING STARTED]" not in msg:
                         self.file_buff += msg+"\n"
 
@@ -706,14 +706,14 @@ class GUI(threading.Thread):
                         dpg.set_value("master_serial_display", f"{msg}")
                     except Exception as e:
                         print(e)
-                    time.sleep(0.02)
+                    time.sleep(0.05)
             except queue.Empty:
-                #dpg.set_value("master_serial_display", "DEVICE NOT CONNECTED")
-                #print("Master: Queue empty")
-                time.sleep(0.25)
+                # dpg.set_value("master_serial_display", "DEVICE NOT CONNECTED")
+                # print("Master: Queue empty")
+                time.sleep(0.05)
             except Exception as e:
-                #print(f"Master: Error in periodic serial listener {e}")
-                time.sleep(0.025)
+                # print(f"Master: Error in periodic serial listener {e}")
+                time.sleep(0.05)
 
     def run(self):
 

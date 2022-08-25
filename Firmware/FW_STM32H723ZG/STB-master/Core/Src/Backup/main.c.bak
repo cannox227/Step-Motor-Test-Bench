@@ -92,9 +92,20 @@ typedef struct {
 
 master_state_machine msm_handler;
 
+typedef struct {
+    bool is_powered;
+} stepper_handler;
+
+stepper_handler stepper;
 uint8_t sendings_attempts_done = 0;
 uint32_t current_tick          = 0;
 uint32_t deadline              = 0;
+
+// ADC variables
+volatile float torque_gpio;
+volatile float board_voltage;
+volatile float stepper_current;
+char adc_out[100];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,6 +113,8 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 bool parse_gui_cmd(char *cmd_rx);
 void reset_cmd(uart_rx_handler *uart_handler);
+void update_sensor_values();
+void update_sensor_values_and_print();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -122,7 +135,9 @@ int main(void) {
     msm_handler.go_to_next_state = true;
     reset_cmd(&gui_cmd_handler);
     reset_cmd(&slave_cmd_handler);
+    stepper.is_powered = false;
 
+    uint32_t sensor_time = 5000;
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
@@ -143,7 +158,7 @@ int main(void) {
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
-    //MX_GPIO_Init();
+    // MX_GPIO_Init();
     MX_ETH_Init();
     MX_USART3_UART_Init();
     MX_USB_OTG_HS_USB_Init();
@@ -175,31 +190,19 @@ int main(void) {
     
     */
 
+    HAL_GPIO_WritePin(ENABLE_STEPPER_SUPPLY_GPIO_Port, ENABLE_STEPPER_SUPPLY_Pin, GPIO_PIN_RESET);
+    memset(adc_out, 0x00, sizeof(adc_out));
     brake_init(&magnetic_brake);
     brake_set_pwm_duty_cycle(&magnetic_brake, 0.5);
 
     ADC_Calibration();
     ADC_start_DMA_readings();
-    volatile uint32_t clk_freq;
-    volatile uint16_t current_v;
-    volatile uint16_t trq_v;
-    volatile uint16_t volt_v;
-    //brake_on(&magnetic_brake);
-    char adc_out[100];
-    memset(adc_out, 0x00, sizeof(adc_out));
+
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        while (1) {
-            current_v = ADC_get_current_raw();
-            volt_v    = ADC_get_voltage_raw();
-            trq_v     = ADC_get_torque_raw();
-            //clk_freq  = TIM_GetInternalClkFreq(&TIMER_ADC_TRIGGER_CONVERSIONS);
-            sprintf(adc_out, "Current: %hu, Volt: %hu, Trq: %hu \r\n", current_v, volt_v, trq_v);
-            HAL_UART_Transmit(&UART_USB, (uint8_t *)adc_out, sizeof(adc_out), 100);
-        }
         if (msm_handler.go_to_next_state) {
             msm_handler.current_state = msm_handler.next_state;
         }
@@ -266,11 +269,16 @@ int main(void) {
                 // do stuffs
                 msm_handler.next_state       = SENSORS_READING;
                 msm_handler.go_to_next_state = true;
+                current_tick                 = HAL_GetTick();
+                deadline                     = current_tick + sensor_time;
                 break;
 
             case SENSORS_READING:
+                while (current_tick < deadline) {
+                    update_sensor_values_and_print();
+                    current_tick = HAL_GetTick();
+                }
                 // do stuffs
-                HAL_Delay(5000);
                 msm_handler.next_state       = SEND_STOP_MOTOR_CMD;
                 msm_handler.go_to_next_state = true;
                 break;
@@ -430,6 +438,31 @@ bool parse_gui_cmd(char *cmd_rx) {
         cmd_is_valid = false;
     }
     return cmd_is_valid;
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    if (pin == BLUE_BUTTON_Pin) {
+        (stepper.is_powered)
+            ? HAL_GPIO_WritePin(ENABLE_STEPPER_SUPPLY_GPIO_Port, ENABLE_STEPPER_SUPPLY_Pin, GPIO_PIN_RESET)
+            : HAL_GPIO_WritePin(ENABLE_STEPPER_SUPPLY_GPIO_Port, ENABLE_STEPPER_SUPPLY_Pin, GPIO_PIN_SET);
+        stepper.is_powered = !stepper.is_powered;
+    }
+}
+
+void update_sensor_values() {
+    torque_gpio     = ADC_get_voltage_to_gpio_level();
+    board_voltage   = ADC_get_voltage_converted();
+    stepper_current = ADC_get_current_converted();
+}
+
+void update_sensor_values_and_print() {
+    torque_gpio     = ADC_get_voltage_to_gpio_level();
+    board_voltage   = ADC_get_voltage_converted();
+    stepper_current = ADC_get_current_converted();
+
+    sprintf(
+        adc_out, "Current: %.2f A | STB supply: %.2f V | Trq: %.2f \r\n", stepper_current, board_voltage, torque_gpio);
+    HAL_UART_Transmit(&UART_USB, (uint8_t *)adc_out, sizeof(adc_out), 100);
 }
 
 /* USER CODE END 4 */

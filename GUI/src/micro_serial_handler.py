@@ -1,3 +1,4 @@
+from doctest import master
 import serial.tools.list_ports
 import time
 import queue
@@ -102,12 +103,12 @@ class Micro_serial_handler(threading.Thread):
         try:
             if device_type == "master":
                 self.serial_master_socket = serial.Serial(
-                    device_name, 115200, timeout=10)
+                    device_name, 115200, timeout=1)
                 self.selected_master_device = device_name
                 return self.serial_master_socket.is_open
             elif device_type == "slave":
                 self.serial_slave_socket = serial.Serial(
-                    device_name, 115200, timeout=10)
+                    device_name, 115200, timeout=1)
                 self.selected_slave_device = device_name
                 return self.serial_slave_socket.is_open
         except Exception as e:
@@ -203,17 +204,18 @@ class Micro_serial_handler(threading.Thread):
                 # To display in a correct way on the gui it's necessary to erase those chars
                 slave_tx = slave_tx.decode('utf-8').strip().strip('\x00')
                 self.serial_slave_echo.put(slave_tx)
-            time.sleep(0.001)
+            time.sleep(0.05)
 
     def master_echo_callback(self):
         while self.is_running:
             master_tx = self.read_line("master")
+            print(f"MASTER CALLBACK {master_tx}")
             if self.read_line("master") != None:
                 # Note that with a fixed size buffer all NULL chars are filed with \x00
                 # To display in a correct way on the gui it's necessary to erase those chars
                 master_tx = master_tx.decode('utf-8').strip().strip('\x00')
                 self.serial_master_echo.put(master_tx)
-            time.sleep(0.001)
+            time.sleep(0.05)
 
     def run(self):
         self.is_running = True

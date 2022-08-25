@@ -53,7 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+extern float brake_single_step_period;
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -104,12 +104,17 @@ void Error_Handler(void);
 #define TIMER_ADC_CHANNEL_CURRENT_TRIGGER TIM_CHANNEL_1
 #define TIMER_ADC_CHANNEL_TORQUE_TRIGGER  TIM_CHANNEL_2
 #define TIMER_ADC_CHANNEL_VOLTAGE_TRIGGER TIM_CHANNEL_3
+#define TIMER_BRAKE_STEP_CONTROL          htim6
 #define ADC_CURRENT                       hadc2
 #define ADC_TORQUE                        hadc1
 #define ADC_VOLTAGE                       hadc3
 #define DMA_CURRENT                       hdma_adc1
 #define DMA_TORQUE                        hdma_adc2
 #define DMA_VOLTAGE                       hdma_adc3
+
+// #define TIMER_BRAKE_STEP_CONTROL                htim2
+// #define TIMER_BRAKE_STEP_CONTROL_CHANNEL        TIM_CHANNEL_1
+// #define TIMER_BRAKE_STEP_CONTROL_ACTIVE_CHANNEL HAL_TIM_ACTIVE_CHANNEL_1
 
 #define MAX_STEPPER_SUPPLY 24
 /* USER CODE END Private defines */
