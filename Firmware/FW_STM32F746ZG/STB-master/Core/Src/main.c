@@ -256,7 +256,7 @@ int main(void) {
                 HAL_UART_Receive_IT(&UART_USB, (uint8_t *)&gui_cmd_handler.last_char_received, sizeof(char));
                 if (gui_cmd_handler.is_word_complete) {
                     set_and_go_to_next_state(CMD_RECEIVED);
-                                }
+                }
                 break;
             case CMD_RECEIVED:
                 HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_SET);

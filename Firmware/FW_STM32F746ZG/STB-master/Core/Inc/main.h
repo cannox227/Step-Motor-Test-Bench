@@ -75,6 +75,10 @@ extern float brake_single_step_period;
 #define LD1_GPIO_Port GPIOB
 #define DEBUG_SIGNAL_2_Pin GPIO_PIN_0
 #define DEBUG_SIGNAL_2_GPIO_Port GPIOG
+#define DEBUG_PIN_5_Pin GPIO_PIN_10
+#define DEBUG_PIN_5_GPIO_Port GPIOB
+#define DEBUG_PIN_4_Pin GPIO_PIN_11
+#define DEBUG_PIN_4_GPIO_Port GPIOB
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLK_RX_Pin GPIO_PIN_8
@@ -99,6 +103,8 @@ extern float brake_single_step_period;
 #define SW0_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
+#define DEBUG_PIN_3_Pin GPIO_PIN_0
+#define DEBUG_PIN_3_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 #define UART_USB                          huart3
 #define UART_SLAVE                        huart6
