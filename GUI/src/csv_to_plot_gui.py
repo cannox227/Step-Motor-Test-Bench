@@ -27,12 +27,12 @@ class CSV_to_Plot_GUI():
 
             dpg.add_separator()
             dpg.add_text(
-                "Torque max value: 0 [Nm]", tag="torque_max_value_field")
+                "Max Torque value: 0 [Nm]", tag="torque_max_value_field")
             dpg.add_text(
-                "Voltage max value: 0 [V]", tag="voltage_max_value_field")
+                "Max Voltage value: 0 [V]", tag="voltage_max_value_field")
             dpg.add_text(
-                "Current max value: 0 [A]", tag="current_max_value_field")
-            dpg.add_text("Power max value: 0 [W]", tag="power_max_value_field")
+                "Max Current value: 0 [A]", tag="current_max_value_field")
+            dpg.add_text("Max Power value: 0 [W]", tag="power_max_value_field")
 
         # Note for every plot use max 3 y axis (the fourth will be not assigned and with 5 a segmentation fault will occur)
         with dpg.window(label="CSV to image plot converter", tag="plot_window_0", pos=(400, 0), show=False,  width=400, height=400):
@@ -98,13 +98,13 @@ class CSV_to_Plot_GUI():
         dpg.set_value("selected_file_preview",
                       f"File preview:\n{self.plot_handler.get_csv_head()}\n...\n{self.plot_handler.get_csv_tail()}")
         dpg.set_value("torque_max_value_field",
-                      f"Torque max value: {self.plot_handler.get_torque_max()} [Nm]")
+                      f"TMax Torque value: {self.plot_handler.get_torque_max()} [Nm]")
         dpg.set_value("voltage_max_value_field",
-                      f"Voltage max value: {self.plot_handler.get_voltage_max()} [V]")
+                      f"Max Voltage value: {self.plot_handler.get_voltage_max()} [V]")
         dpg.set_value("current_max_value_field",
-                      f"Current max value: {self.plot_handler.get_current_max()} [A]")
+                      f"Max Current value: {self.plot_handler.get_current_max()} [A]")
         dpg.set_value("power_max_value_field",
-                      f"Power max value: {self.plot_handler.get_power_max()} [W]")
+                      f"Max Power value: {self.plot_handler.get_power_max()} [W]")
 
     def convert_to_plot(self):
 

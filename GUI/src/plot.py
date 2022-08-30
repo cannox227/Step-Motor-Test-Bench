@@ -26,21 +26,21 @@ class Plot_Visualizer():
         self.pd_handler = pd.read_csv(filename)
         # Remove null values
         self.pd_handler = self.pd_handler.dropna()
-        initial_time = self.pd_handler.iloc[0]['Time']
+        initial_time = self.pd_handler.iloc[0]['Time [ms]']
         # if time is relative then convert to absolute
         if initial_time != 0:
-            self.pd_handler['Time'] -= self.pd_handler.iloc[0]['Time']
+            self.pd_handler['Time [ms]'] -= self.pd_handler.iloc[0]['Time [ms]']
         # If there isnìt a Power column it can be created
-        if 'Power' not in self.pd_handler.columns:
-            self.pd_handler["Power"] = self.pd_handler["Voltage"] * \
-                self.pd_handler["Current"]
+        if 'Power [W]' not in self.pd_handler.columns:
+            self.pd_handler["Power [W]"] = self.pd_handler["Voltage [V]"] * \
+                self.pd_handler["Current [A]"]
 
-        self.xvals = list(self.pd_handler["Time"])
-        self.torque_vals = list(self.pd_handler["Torque"])
-        self.brake_vals = list(self.pd_handler["Brake"])
-        self.current_vals = list(self.pd_handler["Current"])
-        self.voltage_vals = list(self.pd_handler["Voltage"])
-        self.power_vals = list(self.pd_handler["Power"])
+        self.xvals = list(self.pd_handler["Time [ms]"])
+        self.torque_vals = list(self.pd_handler["Torque [Nm]"])
+        self.brake_vals = list(self.pd_handler["Brake [%]"])
+        self.current_vals = list(self.pd_handler["Current [A]"])
+        self.voltage_vals = list(self.pd_handler["Voltage [V]"])
+        self.power_vals = list(self.pd_handler["Power [W]"])
         # print(pd_handler.to_string())
 
     def get_csv_head(self):
@@ -74,28 +74,28 @@ class Plot_Visualizer():
         return self.power_vals
 
     def get_torque_max(self):
-        return self.pd_handler['Torque'].max()
+        return self.pd_handler['Torque [Nm]'].max()
 
     def get_torque_min(self):
-        return self.pd_handler['Torque'].min()
+        return self.pd_handler['Torque [Nm]'].min()
 
     def get_voltage_max(self):
-        return self.pd_handler['Voltage'].max()
+        return self.pd_handler['Voltage [V]'].max()
 
     def get_voltage_min(self):
-        return self.pd_handler['Voltage'].min()
+        return self.pd_handler['Voltage [V]'].min()
 
     def get_current_max(self):
-        return self.pd_handler['Current'].max()
+        return self.pd_handler['Current [A]'].max()
 
     def get_current_min(self):
-        return self.pd_handler['Current'].min()
+        return self.pd_handler['Current [A]'].min()
 
     def get_power_max(self):
-        return self.pd_handler['Power'].max()
+        return self.pd_handler['Power [W]'].max()
 
     def get_power_min(self):
-        return self.pd_handler['Power'].min()
+        return self.pd_handler['Power [W]'].min()
 
     # def print_vals(self):
     #     print(f"xvals: {self.xvals} \nyvals: {self.yvals}")

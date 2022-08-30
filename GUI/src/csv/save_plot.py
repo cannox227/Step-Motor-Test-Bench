@@ -17,12 +17,16 @@ def main():
     else:
         file_name = str(sys.argv[1])
     df = pd.read_csv(file_name)
+    initial_time = df.iloc[0]['Time [ms]']
+    # if time is relative then convert to absolute
+    if initial_time != 0:
+        df['Time [ms]'] -= df.iloc[0]['Time [ms]']
     file_name = file_name.replace(".csv", "")
     df = df.dropna()
     # If there isn't a Power column it will be created
-    if 'Power' not in df.columns:
-        df["Power"] = df["Voltage"] * \
-            df["Current"]
+    if 'Power [W]' not in df.columns:
+        df["Power [W]"] = df["Voltage [V]"] * \
+            df["Current [A]"]
     # Split the directories name in DD_MM_YYYY and HH_MM_SS from the original file name
     directory_name = file_name.split("_")
     # Check whether plots folder exists, if not one will be created
@@ -42,14 +46,16 @@ def main():
         os.chdir(f"../plots/{directory_name[0]}")
     print(f"Using path: {os.getcwd()}")
     # Save all sensor values in the same plot (using Time as x-axis)
-    df.plot("Time").get_figure().savefig(
+    df.plot("Time [ms]").get_figure().savefig(
         f"{directory_name[1]}/All.pdf")
     # Plot and save separate values during Time
     # eg: Brake.pdf, Current.pdf etc
     for i in df.columns:
-        if i != "Time" and i != "Sender":
-            df.plot("Time", f"{i}").get_figure().savefig(
+        if i != "Time [ms]" and i != "Sender":
+            df.plot("Time [ms]", f"{i}").get_figure().savefig(
                 f"{directory_name[1]}/{i}.pdf")
+            df.plot("Time [ms]", f"{i}").get_figure().savefig(
+                f"{directory_name[1]}/{i}.png", format="png", dpi=300)
 
 
 if __name__ == "__main__":

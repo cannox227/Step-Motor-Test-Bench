@@ -638,8 +638,8 @@ class GUI(threading.Thread):
     def update_csv_buffer(self):
         if self.file_buff != "":
             try:
-                header = ['Sender', 'Time', 'Torque',
-                          'Voltage', 'Current', 'Brake']
+                header = ['Sender', 'Time [ms]', 'Torque [Nm]',
+                          'Voltage [V]', 'Current [A]', 'Brake [%]']
                 buffer = StringIO(self.file_buff)
                 reader = csv.reader(buffer, skipinitialspace=True)
                 file_name = f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.csv'
