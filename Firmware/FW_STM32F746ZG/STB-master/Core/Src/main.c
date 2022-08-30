@@ -169,6 +169,7 @@ int main(void) {
     /* USER CODE BEGIN 2 */
     HAL_GPIO_WritePin(DEBUG_SIGNAL_1_GPIO_Port, DEBUG_SIGNAL_1_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DEBUG_SIGNAL_2_GPIO_Port, DEBUG_SIGNAL_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ENABLE_STEPPER_SUPPLY_GPIO_Port, ENABLE_STEPPER_SUPPLY_Pin, GPIO_PIN_SET);
     // INIT PHASE
     msm_handler.current_state    = INIT;
     msm_handler.next_state       = WAITING_FOR_CMD;
