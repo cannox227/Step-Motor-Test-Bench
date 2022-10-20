@@ -98,7 +98,7 @@ class CSV_to_Plot_GUI():
         dpg.set_value("selected_file_preview",
                       f"File preview:\n{self.plot_handler.get_csv_head()}\n...\n{self.plot_handler.get_csv_tail()}")
         dpg.set_value("torque_max_value_field",
-                      f"TMax Torque value: {self.plot_handler.get_torque_max()} [Nm]")
+                      f"Max Torque value: {self.plot_handler.get_torque_max()} [Nm]")
         dpg.set_value("voltage_max_value_field",
                       f"Max Voltage value: {self.plot_handler.get_voltage_max()} [V]")
         dpg.set_value("current_max_value_field",

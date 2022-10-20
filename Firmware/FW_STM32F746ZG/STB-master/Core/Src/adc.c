@@ -23,6 +23,8 @@
 /* USER CODE BEGIN 0 */
 #include "timer_utils.h"
 
+// Note that mV / 1000 = V !
+
 // Measured voltage value corresponding to zero torque [Nm]
 float measured_zero_torque_value;
 // Measured voltage value corresponding to current [A]
@@ -452,7 +454,8 @@ float ADC_get_current_converted() {
 #ifdef REAL_MEASUREMENT_CURRENT_OFFSET
     float gpio_val = ADC_get_current_to_gpio_level() - measured_zero_current_value;
 #endif
-    float current_A = (gpio_val / LEM_CAS_6_NP_THEORETICAL_SENSITIVITY) * 1000 * CURRENT_DIVIDER_FACTOR;
+    float current_A = (gpio_val / LEM_CAS_6_NP_THEORETICAL_SENSITIVITY) * 1000 *
+                      CURRENT_DIVIDER_FACTOR;  // ( V / [mV/A] ) * 1000
     return current_A;
 }
 
@@ -523,11 +526,11 @@ float ADC_get_torque_converted() {
     float raw_val = ADC_get_torque_to_gpio_level();
 #ifdef HARDCODED_TORQUE_OFFSET
     return ((raw_val * TORQUE_DIVIDER_FACTOR) - TORQUE_ZERO_IN_VOLTS) /
-           (SLOPE_TORQUE_SENSOR / 1000);  // [V]/[mV/Nm]/1000 -> Nm
+           (SLOPE_TORQUE_SENSOR / 1000);  // [V]/([mV/Nm]/1000) -> Nm
 #endif
 #ifdef REAL_MEASUREMENT_TORQUE_OFFSET
     return ((raw_val * TORQUE_DIVIDER_FACTOR) - measured_zero_torque_value) /
-           (SLOPE_TORQUE_SENSOR / 1000);  // [V]/[mV/Nm]/1000 -> Nm
+           (SLOPE_TORQUE_SENSOR / 1000);  // [V]/([mV/Nm]/1000) -> Nm
 #endif
 }
 

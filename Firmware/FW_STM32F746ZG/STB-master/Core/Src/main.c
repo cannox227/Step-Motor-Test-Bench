@@ -180,7 +180,7 @@ int main(void) {
 
     uint32_t sensor_time = 5000;
 
-    HAL_GPIO_WritePin(ENABLE_STEPPER_SUPPLY_GPIO_Port, ENABLE_STEPPER_SUPPLY_Pin, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(ENABLE_STEPPER_SUPPLY_GPIO_Port, ENABLE_STEPPER_SUPPLY_Pin, GPIO_PIN_RESET);
     memset(adc_out, 0x00, sizeof(adc_out));
 
     brake_init(&magnetic_brake);
