@@ -1,6 +1,6 @@
 # Step-motor-test-bench
 
-Step Motor Testbench is a tool made in collaboration with ProM Facility which can be used to measure the __maximum power__ and the __maximum torque__ of a step motor. <br>
+Step Motor Testbench is a tool made in collaboration with [ProM Facility](https://promfacility.eu/#/) which can be used to measure the __maximum power__ and the __maximum torque__ of a step motor. <br>
 Notice that this is a prototype made up to validate the innovative company idea. 
 ![stb-lab-pic](Documentation/media/stb-lab-pic.jpg)
 
