@@ -1,3 +1,11 @@
+# Stepper Testbench GUI
+The GUI is made up of two main windows: the first one is used to control the motor driver parameters, to test the motor under load, to communicate with both units using serial communication and to save the acquired data into a csv file. The second one is used to plot the acquired data into some.
+
+The second one is used to read the sensors values and to plot the acquired data in a dynamic way. 
+
+![GUI Motor config window](../Documentation/media/GUI_motor_config.png)
+
+![GUI plot window](../Documentation/media/GUI_plot.png)
 # GUI Installation
     cd src
     pip3 install -r requirements.txt
